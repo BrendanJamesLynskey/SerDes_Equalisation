@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equalisation in High-Speed Serial Links</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+    <style>
+        :root { --bg-primary:#0a0a0a; --bg-card:#0d1117; --bg-code:#161b22; --text-primary:#e6edf3; --text-secondary:#8b949e; --accent:#f59e0b; --accent-dim:#f59e0b44; --accent-glow:#f59e0b33; --accent-2:#f472b6; --accent-3:#fbbf24; --accent-4:#34d399; --border:#21262d; --font-display:'Space Grotesk',sans-serif; --font-mono:'JetBrains Mono','Fira Code',monospace; --font-body:'Inter',sans-serif; --max-width:900px; }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        html{scroll-behavior:smooth}
+        body{background:var(--bg-primary);color:var(--text-primary);font-family:var(--font-body);font-size:17px;line-height:1.7;overflow-x:hidden}
+        .hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:2rem 1.5rem;text-align:center;position:relative}
+        .hero::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:700px;height:600px;background:radial-gradient(circle,var(--accent-glow) 0%,transparent 70%);pointer-events:none;z-index:0}
+        .hero>*{position:relative;z-index:1}
+        .series-label{font-family:var(--font-mono);font-size:.85rem;color:var(--accent);letter-spacing:.15em;text-transform:uppercase;margin-bottom:1rem}
+        .hero h1{font-family:var(--font-display);font-size:clamp(2rem,5vw,3.2rem);font-weight:700;color:var(--text-primary);line-height:1.2;margin-bottom:1rem}
+        .hero h1 .accent{color:var(--accent)}
+        .hero .subtitle{font-size:1.1rem;color:var(--text-secondary);max-width:640px;margin-bottom:2rem}
+        .tags{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin-bottom:2.5rem}
+        .tag{font-family:var(--font-mono);font-size:.75rem;padding:.25rem .75rem;border-radius:999px;border:1px solid var(--accent);color:var(--accent);background:var(--accent-dim);white-space:nowrap}
+        .pipeline{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.25rem;margin-bottom:1rem;max-width:var(--max-width)}
+        .pipeline-step{font-family:var(--font-mono);font-size:.7rem;padding:.3rem .7rem;background:var(--bg-card);border:1px solid var(--border);border-radius:4px;color:var(--text-secondary);white-space:nowrap}
+        .pipeline-arrow{color:var(--accent);font-size:.9rem;font-weight:700}
+        .slide{min-height:100vh;max-width:var(--max-width);margin:0 auto;padding:4rem 1.5rem;position:relative;display:flex;flex-direction:column;justify-content:center}
+        .slide-number{font-family:var(--font-display);font-size:5rem;font-weight:700;color:var(--accent-dim);position:absolute;top:2rem;right:1.5rem;line-height:1;user-select:none}
+        .slide h2{font-family:var(--font-display);font-size:1.9rem;font-weight:700;color:var(--accent);margin-bottom:1.5rem;line-height:1.25}
+        .slide h3{font-family:var(--font-display);font-size:1.3rem;font-weight:600;color:var(--text-primary);margin-top:1.5rem;margin-bottom:.75rem}
+        .slide p{margin-bottom:1rem;color:var(--text-secondary)}
+        .slide p strong{color:var(--text-primary)}
+        .slide ul,.slide ol{margin-bottom:1rem;padding-left:1.5rem;color:var(--text-secondary)}
+        .slide li{margin-bottom:.4rem}
+        .slide li strong{color:var(--text-primary)}
+        .slide code{background:var(--bg-code);padding:.1rem .35rem;border-radius:3px;font-family:var(--font-mono);font-size:.85em;color:var(--accent)}
+        .diagram-grid{display:grid;gap:.75rem;margin:1.5rem 0;padding:1.5rem;background:var(--bg-card);border:1px solid var(--border);border-radius:8px}
+        .diagram-grid.cols-2{grid-template-columns:1fr 1fr}
+        .diagram-grid.cols-3{grid-template-columns:1fr 1fr 1fr}
+        .diagram-panel{padding:1rem;background:var(--bg-code);border:1px solid var(--border);border-radius:6px}
+        .diagram-panel.accent-border{border-left:3px solid var(--accent)}
+        .diagram-panel.r{border-left:3px solid var(--accent-2)}
+        .diagram-panel.y{border-left:3px solid var(--accent-3)}
+        .diagram-panel.g{border-left:3px solid var(--accent-4)}
+        .diagram-panel h4{font-family:var(--font-display);font-size:1rem;color:var(--accent);margin-bottom:.5rem}
+        .diagram-panel.r h4{color:var(--accent-2)}
+        .diagram-panel.y h4{color:var(--accent-3)}
+        .diagram-panel.g h4{color:var(--accent-4)}
+        .diagram-panel p,.diagram-panel ul{font-size:.9rem}
+        .callout{background:var(--bg-card);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:1rem 1.25rem;margin:1.25rem 0}
+        .callout p{margin-bottom:0}
+        .callout .callout-label{font-family:var(--font-mono);font-size:.75rem;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.3rem}
+        .canvas-wrap{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:1rem;margin:1.25rem 0;overflow-x:auto}
+        .canvas-wrap canvas{display:block;margin:0 auto;max-width:100%;image-rendering:pixelated}
+        .control-panel{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:1.25rem;margin:1.25rem 0}
+        .control-row{display:flex;flex-wrap:wrap;align-items:center;gap:.75rem;margin-bottom:.75rem}
+        .control-row label{font-family:var(--font-mono);font-size:.8rem;color:var(--text-secondary);min-width:130px}
+        .control-row input[type="range"]{flex:1;min-width:150px;accent-color:var(--accent)}
+        .control-row .val{font-family:var(--font-mono);font-size:.85rem;color:var(--accent);min-width:80px;text-align:right}
+        .btn{font-family:var(--font-mono);font-size:.8rem;padding:.4rem .9rem;background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent);border-radius:4px;cursor:pointer}
+        .btn:hover{background:rgba(245,158,11,.25)}
+        .btn.secondary{background:var(--bg-code);color:var(--text-secondary);border-color:var(--border)}
+        .metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.5rem;margin-top:.75rem}
+        .metric{background:var(--bg-code);border:1px solid var(--border);border-radius:6px;padding:.6rem .8rem;text-align:center}
+        .metric .metric-label{font-family:var(--font-mono);font-size:.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.08em}
+        .metric .metric-value{font-family:var(--font-display);font-size:1.25rem;color:var(--accent);font-weight:600;margin-top:.2rem}
+        .contents-list{list-style:none;padding-left:0;counter-reset:contents}
+        .contents-list li{counter-increment:contents;padding:.6rem 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem}
+        .contents-list li:last-child{border-bottom:none}
+        .contents-list li::before{content:counter(contents,decimal-leading-zero);font-family:var(--font-mono);font-size:.85rem;color:var(--accent);min-width:2rem}
+        .contents-list a{color:var(--text-primary);text-decoration:none}
+        .contents-list a:hover{color:var(--accent)}
+        .footer{text-align:center;padding:3rem 1.5rem;color:var(--text-secondary);font-size:.85rem;border-top:1px solid var(--border);max-width:var(--max-width);margin:0 auto}
+        .footer a{color:var(--accent);text-decoration:none}
+        .katex{color:var(--text-primary)}
+        .katex-display{margin:1rem 0;overflow-x:auto;overflow-y:hidden}
+        table{width:100%;border-collapse:collapse;font-size:.9rem;margin:1rem 0}
+        th{background:var(--bg-code);color:var(--accent);font-weight:600;text-align:left;padding:.6rem .85rem;border-bottom:1px solid var(--border);font-family:var(--font-display)}
+        td{padding:.5rem .85rem;border-bottom:1px solid var(--border);color:var(--text-secondary);vertical-align:top}
+        tr:last-child td{border-bottom:none}
+        tr:nth-child(even) td{background:rgba(13,17,23,.5)}
+        @media (max-width:640px){.slide{padding:3rem 1rem;min-height:auto}.slide-number{font-size:3rem;top:1.5rem;right:1rem}.slide h2{font-size:1.5rem}.diagram-grid.cols-2,.diagram-grid.cols-3{grid-template-columns:1fr}.hero h1{font-size:1.8rem}}
+
+        .plane-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+        @media (max-width:640px){.plane-grid{grid-template-columns:1fr}}
+        .legend{display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;margin-top:.6rem;font-family:var(--font-mono);font-size:.72rem;color:var(--text-secondary)}
+        .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:.35rem;vertical-align:middle}
+        .verdict{font-family:var(--font-mono);font-size:.8rem;padding:.35rem .7rem;border-radius:4px;display:inline-block;margin-top:.5rem}
+        .verdict.ok{color:var(--accent-4);border:1px solid var(--accent-4);background:rgba(52,211,153,.12)}
+        .verdict.bad{color:var(--accent-2);border:1px solid var(--accent-2);background:rgba(244,114,182,.12)}
+        .canvas-wrap canvas{image-rendering:auto}
+        .metric-label .katex,.callout-label .katex,.series-label .katex,
+        .metric-label .katex *,.callout-label .katex *{text-transform:none}
+        .note{font-size:.85rem;color:var(--text-secondary);font-style:italic;margin-top:.5rem}
+    </style>
+
+</head>
+<body>
+<header class="hero">
+    <div class="series-label">Matrix Methods in Engineering &mdash; Deck 03</div>
+    <h1>Equalisation in <span class="accent">High-Speed Serial Links</span></h1>
+    <p class="subtitle">One real channel, characterised and then equalised all the way to a
+    link budget &mdash; and an honest answer about which fix is worth the money when it still
+    does not close.</p>
+
+    <div class="tags">
+        <span class="tag">S-parameters</span><span class="tag">pulse response</span>
+        <span class="tag">CTLE</span><span class="tag">FFE</span>
+        <span class="tag">DFE</span><span class="tag">PAM4</span>
+        <span class="tag">FEC</span><span class="tag">224G</span>
+    </div>
+
+    <div class="pipeline">
+        <span class="pipeline-step">$S_{dd21}$</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">pulse response</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">equalisers</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">budget</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">BER</span>
+    </div>
+</header>
+
+<section class="slide" id="slide-00">
+    <div class="slide-number">00</div>
+    <h2>Topics We'll Cover</h2>
+    <ul class="contents-list">
+        <li><a href="#slide-01">What closes an eye</a></li>
+        <li><a href="#slide-02">A short history</a></li>
+        <li><a href="#slide-03">The channel, characterised</a></li>
+        <li><a href="#slide-04">Interactive: the via stub</a></li>
+        <li><a href="#slide-05">From S-parameters to a pulse response</a></li>
+        <li><a href="#slide-06">The equaliser blocks, and what each costs</a></li>
+        <li><a href="#slide-07">Interactive: the whole chain</a></li>
+        <li><a href="#slide-08">The worked design and its eyes</a></li>
+        <li><a href="#slide-09">The noise budget</a></li>
+        <li><a href="#slide-10">It does not close: what would fix it</a></li>
+        <li><a href="#slide-11">The same channel at 56 Gb/s PAM4</a></li>
+        <li><a href="#slide-12">Adaptation and training</a></li>
+        <li><a href="#slide-13">Where this is going</a></li>
+        <li><a href="#slide-14">Cheat sheet</a></li>
+    </ul>
+</section>
+
+<section class="slide" id="slide-01">
+    <div class="slide-number">01</div>
+    <h2>What Closes an Eye</h2>
+    <p>A transmitter launches a clean rectangular symbol. A receiver, twenty-nine inches later,
+    sees something that barely resembles it. Four mechanisms are responsible, and each is fixed
+    by a different block &mdash; which is why it pays to keep them apart.</p>
+
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel accent-border">
+            <h4>Frequency-dependent loss</h4>
+            <p>Copper loss rises as $\sqrt{f}$ as current crowds into a thinner skin;
+            dielectric loss rises roughly as $f$. A square pulse is a wide band, so the channel
+            does not merely shrink it &mdash; it <strong>smears</strong> it across many
+            symbols. That is intersymbol interference, and it dominates everything here.</p>
+        </div>
+        <div class="diagram-panel y">
+            <h4>Reflection</h4>
+            <p>Every discontinuity sends part of the wave back, and part of that returns again.
+            Energy arriving late is ISI with a longer memory and a less predictable shape.</p>
+        </div>
+        <div class="diagram-panel r">
+            <h4>Crosstalk</h4>
+            <p>Unlike the first two, it is <em>not</em> correlated with your own data, so it
+            behaves as noise rather than as ISI &mdash; and no equaliser can subtract it.</p>
+        </div>
+        <div class="diagram-panel g">
+            <h4>Jitter</h4>
+            <p>Moves the sampling instant rather than the level, converting to amplitude error
+            in proportion to the slope of the waveform where you sample it.</p>
+        </div>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">Why not just use better copper?</div>
+        <p>Because the chassis, the connector and the laminate are chosen long before the
+        SerDes is, and none of them get cheaper with each doubling of data rate. Equalisation
+        is the part of the problem that lives on silicon, which is the only part that does.
+        That is why every rate increase for twenty years has been paid for with more
+        equalisation rather than with better copper &mdash; and also why slide 10, where the
+        board turns out to be the cheaper fix, is worth reading carefully.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-02">
+    <div class="slide-number">02</div>
+    <h2>A Short History</h2>
+    <p>XAUI in 2002 ran 3.125 GBd over a channel with perhaps 6 dB of loss at Nyquist, and a
+    fixed two-tap transmit de-emphasis &mdash; a switchable current in the output driver
+    &mdash; was enough. Nothing about it adapted; a board designer picked a setting from a
+    table.</p>
+
+    <p>The step that made modern links possible was <strong>10GBASE-KR</strong> in 2007, which
+    standardised three things at once: a three-tap transmit FFE, a receive DFE, and a
+    <strong>training protocol</strong> by which the receiver tells the transmitter which way to
+    move its taps. Until then equalisation was open-loop and set by hand. After it, a link
+    negotiated its own settings at start-up and 20 dB channels became routine.</p>
+
+    <p>CEI-28G around 2011 added the CTLE as a standard receive block and pushed decision
+    feedback to a dozen taps. That is the generation this deck's worked example belongs to, and
+    the last in which a designer can follow every block by hand. What came next changed the
+    character of the problem: 400GbE and CEI-56G moved to PAM4 and made forward error
+    correction <em>mandatory</em>, because the 9.5 dB PAM4 gives away (slide 11) is simply not
+    recoverable by equalisation. 802.3ck and CEI-112G then replaced the analogue slicer with an
+    ADC, moving equalisation into the digital domain where long filters and sequence estimation
+    become affordable.</p>
+
+    <div class="callout">
+        <div class="callout-label">The through-line</div>
+        <p>Every generation bought its rate increase with more equalisation on silicon, not
+        with better copper. The structure of the problem has not changed since 2007: a channel
+        you cannot alter, a pulse response that describes it completely, filters whose taps
+        solve a quadratic minimisation, and a budget that decides whether it works.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-03">
+    <div class="slide-number">03</div>
+    <h2>The Channel, Characterised</h2>
+    <p>A conventional two-card backplane topology: transmit package, six inches of line card,
+    a connector, eighteen inches of backplane, a second connector, four inches on the receiving
+    card, receive package. <strong>28.8 inches</strong> of 100&nbsp;Ω differential stripline on
+    Dk 3.7 laminate at 163 ps per inch &mdash; a flight time of 4.7 ns, or
+    <strong>131 unit intervals</strong>. There are always more than a hundred symbols in flight
+    at once, which is worth remembering when reasoning about what a reflection does.</p>
+
+    <div class="metric-grid">
+        <div class="metric"><div class="metric-label">Symbol rate</div><div class="metric-value">28 GBd</div></div>
+        <div class="metric"><div class="metric-label">Unit interval</div><div class="metric-value">35.7 ps</div></div>
+        <div class="metric"><div class="metric-label">Nyquist</div><div class="metric-value">14 GHz</div></div>
+        <div class="metric"><div class="metric-label">$|S_{dd21}|$ at Nyquist</div><div class="metric-value">&minus;33.3 dB</div></div>
+        <div class="metric"><div class="metric-label">Loss per inch</div><div class="metric-value">0.83 dB</div></div>
+        <div class="metric"><div class="metric-label">$|S_{dd11}|$ worst</div><div class="metric-value">&minus;14.5 dB</div></div>
+    </div>
+
+    <p style="margin-top:1rem">Three things to read off the S-parameters before designing
+    anything. <strong>Insertion loss at Nyquist</strong> is the headline difficulty.
+    <strong>Return-loss ripple</strong> is the signature of energy bouncing between the two
+    connectors; because the round trip is many unit intervals, those echoes land as isolated
+    ISI terms far from the cursor, exactly where a five-tap DFE cannot reach them. And
+    <strong>mode conversion</strong>, the $\mathbf{S}_{cd}$ block of the companion deck,
+    matters here for a reason specific to equalisation: converted energy is energy the receiver
+    never sees, so it shrinks the cursor without ever appearing in $S_{dd21}$.</p>
+
+    <div class="callout">
+        <div class="callout-label">Crosstalk is not in a two-port measurement</div>
+        <p>Which is why characterisation is done on a multiport fixture. Near-end and far-end
+        crosstalk from the neighbouring lanes are aggregated into one figure of merit, the
+        integrated crosstalk noise, and it enters the budget on slide 09 as 3.0 mV rms. On this
+        channel it turns out to be the largest single term.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-04">
+    <div class="slide-number">04</div>
+    <h2>Interactive: The Via Stub</h2>
+    <p>A plated through-hole that carries the signal only part of the way down leaves the rest
+    of the barrel hanging off the path as an <strong>open-circuited stub</strong>. An open stub
+    is a quarter-wave short: at the frequency where its length is a quarter wavelength it
+    presents a near short-circuit across the line, and the channel develops a deep notch.</p>
+    <p>$$f_{\text{notch}} = \frac{1}{4\,\tau_{pd}\,\ell}, \qquad
+       \tau_{pd} = 163\ \text{ps/inch}.$$</p>
+    <p>Drag the length. Watch where the notch lands relative to Nyquist.</p>
+
+    <div class="control-panel">
+        <div class="control-row">
+            <label for="vs-len">stub length (mil)</label>
+            <input type="range" id="vs-len" min="5" max="180" step="1" value="110">
+            <span class="val" id="vs-len-val">110</span>
+        </div>
+        <div class="control-row">
+            <button class="btn" data-vs="110">as fabricated</button>
+            <button class="btn" data-vs="8">back-drilled</button>
+            <button class="btn secondary" data-vs="55">half-depth board</button>
+        </div>
+        <div class="metric-grid">
+            <div class="metric"><div class="metric-label">Notch frequency</div><div class="metric-value" id="vs-f">13.9 GHz</div></div>
+            <div class="metric"><div class="metric-label">Excess loss at Nyquist</div><div class="metric-value" id="vs-x">24.9 dB</div></div>
+            <div class="metric"><div class="metric-label">Stub delay</div><div class="metric-value" id="vs-t">17.9 ps</div></div>
+        </div>
+        <div id="vs-verdict" class="verdict bad">notch within 10% of Nyquist — this channel is a brick</div>
+    </div>
+
+    <div class="canvas-wrap">
+        <canvas id="vs-plot" width="780" height="290"></canvas>
+        <div class="legend">
+            <span><i style="background:#f472b6"></i>excess loss from the stub</span>
+            <span><i style="background:#fbbf24"></i>Nyquist, 14 GHz</span>
+        </div>
+    </div>
+
+    <p class="note">On the modelled channel the as-fabricated 110 mil stub adds about 25 dB at
+    Nyquist, taking $|S_{dd21}|$ from &minus;33.3 dB to &minus;58.2 dB. No amount of
+    equalisation recovers a notch: the information at those frequencies is gone, not merely
+    attenuated. Back-drilling is not an optimisation here, it is the difference between a link
+    and a brick.</p>
+</section>
+
+<section class="slide" id="slide-05">
+    <div class="slide-number">05</div>
+    <h2>From S-Parameters to a Pulse Response</h2>
+    <p>Insertion loss tells you how much of a sine wave survives. It does not directly tell you
+    what a receiver sees, because a receiver does not sample sine waves &mdash; it samples one
+    symbol at a time, in the presence of all the others. The object that answers that question
+    is the <strong>pulse response</strong>: the waveform produced by sending a single
+    one-UI symbol and nothing else. Inverse-transform $S_{dd21}$, convolve with a one-UI
+    rectangle, and there it is.</p>
+
+    <p>Sample that waveform once per unit interval at the phase that maximises the peak, and
+    the resulting sequence is the whole story:</p>
+
+    <div class="diagram-grid cols-3">
+        <div class="diagram-panel accent-border">
+            <h4>Cursor</h4>
+            <p>The largest sample &mdash; the part of the symbol that arrives when it is
+            supposed to. Here <strong>0.199</strong> of the transmitted amplitude.</p>
+        </div>
+        <div class="diagram-panel y">
+            <h4>Pre-cursors</h4>
+            <p>Energy that arrived <em>early</em>, landing on symbols not yet decided. The DFE
+            can never touch these. First one: <strong>0.117</strong>.</p>
+        </div>
+        <div class="diagram-panel r">
+            <h4>Post-cursors</h4>
+            <p>Energy still arriving one, two, ten symbols later. First one:
+            <strong>0.145</strong>, and the tail runs for dozens of UI.</p>
+        </div>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">The closed eye, in numbers</div>
+        <p>The cursor is 0.199 and the sum of the absolute values of every other tap is
+        <strong>0.636</strong> — more than three times larger. The worst-case eye opening is
+        twice the difference, which comes out at <strong>&minus;0.87</strong>. A negative eye
+        opening is not a small eye: it means that for some patterns of neighbouring data the
+        receiver sees the <em>wrong sign entirely</em>. Nothing about this link works without
+        equalisation.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-06">
+    <div class="slide-number">06</div>
+    <h2>The Equaliser Blocks, and What Each Costs</h2>
+    <p>Four blocks, each good at something the others are not, and each with a price.</p>
+
+    <table>
+        <thead><tr><th>Block</th><th>Removes</th><th>Cannot remove</th><th>Costs</th></tr></thead>
+        <tbody>
+            <tr><td><strong>CTLE</strong><br>analogue, in the front end</td><td>Broadband slope, very cheaply</td><td>Anything with structure — reflections, isolated echoes</td><td>Cursor amplitude. It attenuates low frequencies rather than amplifying high ones</td></tr>
+            <tr><td><strong>Transmit FFE</strong><br>FIR before the channel</td><td>Pre-cursor and near post-cursor ISI, <em>before</em> crosstalk is added</td><td>Anything it cannot see; it has no knowledge of the receiver's noise</td><td>Transmit swing, through the peak-power constraint $\sum|c_i| \le 1$</td></tr>
+            <tr><td><strong>Receive FFE</strong><br>FIR after the channel</td><td>Pre-cursor ISI and long tails, with many taps available</td><td>Nothing in principle — but every tap costs noise</td><td>Noise enhancement: 0.75 dB for the nine-tap MMSE design here</td></tr>
+            <tr><td><strong>DFE</strong><br>feedback on decisions</td><td>Post-cursor ISI <em>exactly</em>, with no noise penalty at all</td><td>Pre-cursor ISI, ever. It acts only on symbols already decided</td><td>Error propagation, and a hard timing path on the first tap</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout">
+        <div class="callout-label">Why the transmitter handles pre-cursors specifically</div>
+        <p>A DFE subtracts the known contribution of symbols it has already decided, so it
+        cannot touch pre-cursor ISI &mdash; that comes from symbols it has not decided yet. A
+        receive FFE can, at the cost of noise enhancement. A transmit FFE can, at the cost of
+        swing. Splitting the work so the transmitter handles pre-cursors and the feedback path
+        handles post-cursors is not arbitrary: it puts each impairment where the cheapest
+        remedy is.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-07">
+    <div class="slide-number">07</div>
+    <h2>Interactive: The Whole Chain</h2>
+    <p>The real pulse response of the modelled channel, equalised in the browser. Choose a CTLE
+    setting, switch the transmit FFE in or out, set the number of feedback taps, and adjust the
+    noise the receiver has to live with. Everything below is computed from the sampled pulse
+    response, not looked up.</p>
+
+    <div class="control-panel">
+        <div class="control-row">
+            <label for="eq-ctle">CTLE setting (dB DC attenuation)</label>
+            <input type="range" id="eq-ctle" min="0" max="5" step="1" value="4">
+            <span class="val" id="eq-ctle-val">−12</span>
+        </div>
+        <div class="control-row">
+            <label for="eq-ndfe">DFE taps</label>
+            <input type="range" id="eq-ndfe" min="0" max="14" step="1" value="5">
+            <span class="val" id="eq-ndfe-val">5</span>
+        </div>
+        <div class="control-row">
+            <label for="eq-xt">crosstalk (mV rms)</label>
+            <input type="range" id="eq-xt" min="0.5" max="6" step="0.1" value="3.0">
+            <span class="val" id="eq-xt-val">3.0</span>
+        </div>
+        <div class="control-row">
+            <button class="btn" id="eq-ffe">transmit FFE: on</button>
+            <button class="btn secondary" id="eq-pam">signalling: NRZ</button>
+            <button class="btn secondary" data-eq-reset="1">reset to the worked example</button>
+        </div>
+        <div class="metric-grid">
+            <div class="metric"><div class="metric-label">CTLE boost</div><div class="metric-value" id="eq-boost">8.3 dB</div></div>
+            <div class="metric"><div class="metric-label">Cursor at the slicer</div><div class="metric-value" id="eq-sig">12.9 mV</div></div>
+            <div class="metric"><div class="metric-label">Residual ISI</div><div class="metric-value" id="eq-isi">1.12 mV</div></div>
+            <div class="metric"><div class="metric-label">Total noise</div><div class="metric-value" id="eq-noise">2.15 mV</div></div>
+            <div class="metric"><div class="metric-label">Q</div><div class="metric-value" id="eq-q">6.01</div></div>
+            <div class="metric"><div class="metric-label">BER</div><div class="metric-value" id="eq-ber">1e−9.0</div></div>
+        </div>
+        <div id="eq-verdict" class="verdict bad">1.36 dB short of 1e−12</div>
+    </div>
+
+    <div class="canvas-wrap">
+        <div class="plane-grid">
+            <canvas id="eq-taps" width="380" height="300"></canvas>
+            <canvas id="eq-budget" width="380" height="300"></canvas>
+        </div>
+        <div class="legend">
+            <span><i style="background:#34d399"></i>cursor</span>
+            <span><i style="background:#f472b6"></i>ISI the equalisers left</span>
+            <span><i style="background:#22d3ee"></i>cancelled by the DFE</span>
+        </div>
+    </div>
+
+    <p class="note">Three things are worth trying. Turn the CTLE down and watch the cursor rise
+    while the ISI rises faster. Turn the transmit FFE off and watch the pre-cursors reappear
+    where no DFE can reach them. And push the DFE past about eight taps and watch the returns
+    flatten out — the tail is long, but by then it is small compared with the crosstalk.</p>
+</section>
+
+<section class="slide" id="slide-08">
+    <div class="slide-number">08</div>
+    <h2>The Worked Design, Stage by Stage</h2>
+    <p>Putting the blocks in series and tracking the pulse response through them gives the
+    table below. The cursor falls <em>monotonically</em>, which is the part that surprises
+    people new to this: equalisation is not about making the signal bigger, but about making
+    the interference smaller faster than the signal shrinks.</p>
+
+    <table>
+        <thead><tr><th>Stage</th><th>Cursor</th><th>Σ|ISI|</th><th>Worst-case eye</th><th>Verdict</th></tr></thead>
+        <tbody>
+            <tr><td>Channel only</td><td>0.199</td><td>0.636</td><td>−0.87</td><td>Shut, and inverted for some patterns</td></tr>
+            <tr><td>+ CTLE at −12 dB</td><td>0.070</td><td>0.139</td><td>−0.14</td><td>Still shut</td></tr>
+            <tr><td>+ transmit FFE</td><td>0.032</td><td>0.036</td><td>−0.007</td><td>On the edge</td></tr>
+            <tr><td>+ DFE, five taps</td><td>1.000 <span style="opacity:.6">(normalised)</span></td><td>0.349</td><td>1.30</td><td>Open, but not by much</td></tr>
+        </tbody>
+    </table>
+
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel accent-border">
+            <h4>Transmit FFE taps</h4>
+            <p>$[\,0.040,\ -0.340,\ 0.620\,]$ — two pre-taps, zero-forcing the first two
+            pre-cursors, normalised so $\sum|c_i| = 1$. The main tap at 0.62 is the
+            de-emphasis penalty made visible.</p>
+        </div>
+        <div class="diagram-panel r">
+            <h4>DFE taps</h4>
+            <p>$[\,0.301,\ -0.368,\ -0.195,\ -0.032,\ 0.005\,]$. A second tap of −0.37 is large
+            enough that error propagation is a real risk, which is one reason FEC and decision
+            feedback are usually specified together.</p>
+        </div>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">The first DFE tap is a timing problem, not just a filter tap</div>
+        <p>The feedback path must settle within one unit interval — 35.7 ps here — from slicer
+        output back to slicer input. That puts the first tap on the critical path of the whole
+        receiver, which is why it is usually <em>unrolled</em>: both possible answers are
+        computed speculatively in parallel and the decision selects between them after the
+        fact.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-09">
+    <div class="slide-number">09</div>
+    <h2>The Noise Budget</h2>
+    <p>An open eye is necessary but not sufficient. What decides the error rate is the ratio of
+    the eye opening to everything that moves the received level around, and those contributions
+    must be referred to a common point. Referring them to the receiver input, where the cursor
+    is <strong>12.9 mV</strong> out of an 800 mV transmitted swing:</p>
+
+    <table>
+        <thead><tr><th>Contribution</th><th>Value</th><th>Where it comes from</th></tr></thead>
+        <tbody>
+            <tr><td>Crosstalk</td><td>1.58 mV rms</td><td>3.0 mV of integrated crosstalk noise from neighbouring lanes, shaped by the CTLE</td></tr>
+            <tr><td>Residual ISI</td><td>1.12 mV rms</td><td>What the equalisers left behind, treated statistically rather than worst-case</td></tr>
+            <tr><td>Receiver noise</td><td>0.95 mV rms</td><td>1.8 mV of front-end noise, shaped by the same filter (−5.6 dB over the noise bandwidth)</td></tr>
+            <tr><td>Jitter</td><td>0.10 mV rms</td><td>350 fs rms of random jitter, converted through the slope at the sampling instant</td></tr>
+            <tr><td><strong>Total</strong></td><td><strong>2.15 mV rms</strong></td><td>Root-sum-square</td></tr>
+        </tbody>
+    </table>
+
+    <p>Signal 12.9 mV over noise 2.15 mV gives $Q = 6.01$, a bit error rate near
+    $10^{-9}$. The conventional target for an uncorrected link is $10^{-12}$, which needs
+    $Q = 7.03$. <strong>This link is 1.36 dB short.</strong></p>
+
+    <div class="callout">
+        <div class="callout-label">Read the budget before choosing a fix</div>
+        <p>Crosstalk is the largest term, residual ISI is second and receiver noise third. That
+        ordering matters: it says the link is short of margin mostly because of its
+        <em>neighbours</em> and only partly because of what the equalisers left behind.
+        Removing every last scrap of residual ISI would take the total from 2.15 mV to about
+        1.8 mV — worth roughly four tenths of a decibel, nothing like the shortfall. The next
+        slide checks that arithmetic against every alternative.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-10">
+    <div class="slide-number">10</div>
+    <h2>It Does Not Close: What Would Actually Fix It</h2>
+    <p>Seven candidate remedies, each re-run through the whole chain from the channel model
+    outwards, so the margin figures are computed rather than estimated.</p>
+
+    <table>
+        <thead><tr><th>What you change</th><th>Loss at Nyquist</th><th>Q</th><th>Margin to $10^{-12}$</th></tr></thead>
+        <tbody>
+            <tr><td>As built</td><td>−33.3 dB</td><td>6.01</td><td>−1.36 dB</td></tr>
+            <tr><td>Halve the crosstalk (connector + pair pitch)</td><td>−33.3 dB</td><td>7.77</td><td><strong>+0.87 dB</strong></td></tr>
+            <tr><td>Low-loss laminate (Df 0.005 → 0.003)</td><td>−28.0 dB</td><td>8.98</td><td><strong>+2.12 dB</strong></td></tr>
+            <tr><td>Shorten the backplane 18″ → 13″</td><td>−29.3 dB</td><td>8.52</td><td><strong>+1.67 dB</strong></td></tr>
+            <tr><td>Ten DFE taps instead of five</td><td>−33.3 dB</td><td>6.20</td><td>−1.10 dB</td></tr>
+            <tr><td>Add a 9-tap receive FFE (the ADC-DSP answer)</td><td>−33.3 dB</td><td>6.34</td><td>−0.90 dB</td></tr>
+            <tr><td>Low-loss laminate + halved crosstalk</td><td>−28.0 dB</td><td>11.38</td><td><strong>+4.18 dB</strong></td></tr>
+        </tbody>
+    </table>
+
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel g">
+            <h4>Change the board: 1.5 to 2.5 dB</h4>
+            <p>A lower-loss laminate lifts the cursor by reducing the slope the equalisers have
+            to undo. Five inches off the backplane does much the same, often more cheaply.
+            Halving the crosstalk attacks the largest single term directly. <strong>Any one of
+            the three closes the link.</strong></p>
+        </div>
+        <div class="diagram-panel r">
+            <h4>Change the silicon: 0.26 to 0.46 dB</h4>
+            <p>Doubling the DFE taps buys 0.26 dB. Adding a nine-tap receive FFE — the block
+            that defines a modern ADC-DSP receiver, and the obvious thing to reach for — buys
+            0.46 dB, and <strong>still leaves the link short</strong>.</p>
+        </div>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">The general lesson</div>
+        <p>The block that fixed the last problem is rarely the block that fixes the next one. A
+        link short of margin is short for a reason; the budget names the reason; and the
+        instinct to reach for more equalisation is the instinct to solve the problem you solved
+        last time. On a channel dominated by ISI rather than crosstalk this table would look
+        entirely different — which is exactly why you build the budget first.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-11">
+    <div class="slide-number">11</div>
+    <h2>The Same Channel at 56 Gb/s: PAM4 Is Not Free</h2>
+    <p>The obvious way to double throughput without doubling the Nyquist frequency is to send
+    two bits per symbol. PAM4 does exactly that: four amplitude levels at the same 28 GBd,
+    across the same 14 GHz of channel. The channel does not get any worse. The signalling
+    does.</p>
+
+    <p>Four levels across the same peak-to-peak swing leave three eyes, each one third the
+    height of the single NRZ eye:</p>
+    <p>$$20\log_{10} 3 = 9.54\ \text{dB}$$</p>
+    <p>of signal-to-noise ratio given away before anything else is considered — and it is
+    <em>not</em> recoverable by equalisation, because it is a property of the constellation
+    rather than of the channel. On this channel $Q$ falls from 6.01 to
+    <strong>2.00</strong>, and the raw error rate rises from $10^{-9}$ to about
+    $3\times10^{-2}$.</p>
+
+    <div class="callout">
+        <div class="callout-label">Which is why FEC stopped being optional</div>
+        <p>An error rate of one in thirty is not a link. The Reed–Solomon KP4 code,
+        RS(544,514) over GF($2^{10}$), takes a pre-correction error rate of about
+        $2.4\times10^{-4}$ down below $10^{-15}$, and PAM4 links are budgeted to
+        <em>that</em> threshold instead of to $10^{-12}$. Even so this channel does not reach
+        it: the required $Q$ is 3.60 and the available $Q$ is 2.00, a shortfall of
+        <strong>5.1 dB</strong>.</p>
+    </div>
+
+    <table>
+        <thead><tr><th>Channel change</th><th>Loss at Nyquist</th><th>Q</th><th>Margin to the KP4 threshold</th></tr></thead>
+        <tbody>
+            <tr><td>PAM4, as built</td><td>−33.3 dB</td><td>2.00</td><td>−5.08 dB</td></tr>
+            <tr><td>PAM4 + low-loss laminate</td><td>−28.0 dB</td><td>2.99</td><td>−1.60 dB</td></tr>
+            <tr><td>PAM4 + low-loss + 13″ backplane</td><td>−25.1 dB</td><td>3.97</td><td><strong>+0.84 dB</strong></td></tr>
+            <tr><td>PAM4 + all of the above, plus a receive FFE</td><td>−25.1 dB</td><td>6.30</td><td><strong>+4.87 dB</strong></td></tr>
+        </tbody>
+    </table>
+
+    <p class="note">The lesson the industry learned between 2015 and 2020: PAM4 does not let
+    you run twice the data over the channel you already have. It lets you run twice the data
+    over a channel roughly 8 dB better than the one you already have, in exchange for a coding
+    layer, a larger latency budget and a considerably more complicated receiver.</p>
+</section>
+
+<section class="slide" id="slide-12">
+    <div class="slide-number">12</div>
+    <h2>Adaptation and Training</h2>
+    <p>Nothing on slide 06 can be set from a datasheet. Manufacturing spread, temperature, the
+    particular board and the particular connector all move the channel, so every tap in a modern
+    link adapts. The mechanism is the least-mean-squares algorithm of the digital-filter
+    companion deck, usually in its <strong>sign-sign</strong> form: take the sign of the error
+    between the sampled level and the decided level, take the sign of the data in the relevant
+    tap position, multiply, accumulate. No multiplier, no knowledge of the channel, and it
+    converges to the same minimum of the same quadratic bowl the Wiener–Hopf equations
+    describe.</p>
+
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel accent-border">
+            <h4>Receive taps adapt continuously</h4>
+            <p>The receiver has the error signal in hand — the difference between what it
+            sampled and what it decided — so CTLE setting, FFE taps and DFE taps can all track
+            the channel while data flows.</p>
+        </div>
+        <div class="diagram-panel y">
+            <h4>Transmit taps need a back-channel</h4>
+            <p>The transmitter has no idea what the receiver saw. So the standards define a
+            <strong>link training</strong> phase: before data flows, the receiver requests
+            increment, decrement or hold on each transmit tap over a control channel, and the
+            transmitter reports what it did. A few milliseconds, re-run on every link-up.</p>
+        </div>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">Adaptation interacts with the clock</div>
+        <p>The clock and data recovery loop chooses the sampling phase, and the equaliser adapts
+        to whatever phase it is given — while the phase detector sees a waveform shaped by
+        whatever the equaliser is currently doing. The two loops can and do fight, and a link
+        that trains to a stable but poor setting (the wrong lock point, an eye centred half a
+        unit interval from the best one) is a common and deeply unpleasant failure mode.
+        Bandwidth separation between the loops is the usual defence.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-13">
+    <div class="slide-number">13</div>
+    <h2>Where This Is Going</h2>
+    <p>The 224 Gb/s per lane generation keeps PAM4 and doubles the symbol rate again, to around
+    112 GBd, putting Nyquist at 56 GHz. Copper at that frequency is unforgiving, and the
+    practical consequence is that the reach of an electrical channel keeps shrinking: a
+    backplane of the kind modelled here is already out of the question, and even the few inches
+    from a switch die to a front-panel cage have become a design problem rather than a piece of
+    routing.</p>
+
+    <div class="diagram-grid cols-3">
+        <div class="diagram-panel accent-border">
+            <h4>Better receivers</h4>
+            <p><strong>MLSE</strong> — instead of equalising then slicing, search for the most
+            likely transmitted <em>sequence</em> given the known channel response. Worth a few
+            dB over a DFE, at considerable digital power.</p>
+        </div>
+        <div class="diagram-panel y">
+            <h4>Stronger coding</h4>
+            <p>Concatenated and soft-decision schemes replacing the hard-decision Reed–Solomon
+            codes that have served since 2017 — more coding gain, at the cost of latency and
+            power.</p>
+        </div>
+        <div class="diagram-panel g">
+            <h4>Shorter copper</h4>
+            <p><strong>Co-packaged optics</strong> move the electrical-to-optical conversion
+            into the switch package; <strong>linear-drive pluggables</strong> remove the
+            retimer so the host SerDes drives the optical engine directly. Both change the
+            problem from equalising twenty inches to equalising two.</p>
+        </div>
+    </div>
+
+    <p>For all of that, the structure of the problem has not changed since 10GBASE-KR. There is
+    a channel you cannot alter, a pulse response that describes it completely, a set of filters
+    whose taps are the solution of a quadratic minimisation, and a budget that decides whether
+    the result works. Everything in this deck transfers; only the numbers move.</p>
+</section>
+
+<section class="slide" id="slide-14">
+    <div class="slide-number">14</div>
+    <h2>Cheat Sheet</h2>
+
+    <table>
+        <thead><tr><th>Quantity</th><th>This channel</th><th>What it tells you</th></tr></thead>
+        <tbody>
+            <tr><td>Insertion loss at Nyquist</td><td>−33.3 dB</td><td>The headline difficulty. Beyond about −30 dB, NRZ needs every block on slide 06</td></tr>
+            <tr><td>Cursor, unequalised</td><td>0.199</td><td>Fraction of the transmitted amplitude arriving on time</td></tr>
+            <tr><td>Worst-case eye, unequalised</td><td>−0.87</td><td>Negative means some data patterns invert the decision</td></tr>
+            <tr><td>Noise enhancement of a 9-tap Rx FFE</td><td>0.75 dB</td><td>The price of each linear tap — compare a DFE tap, which is free</td></tr>
+            <tr><td>Cursor at the slicer</td><td>12.9 mV</td><td>Out of 800 mV launched</td></tr>
+            <tr><td>Total noise</td><td>2.15 mV rms</td><td>Dominated by crosstalk, not by residual ISI</td></tr>
+            <tr><td>Q and margin</td><td>6.01, −1.36 dB</td><td>Short of $10^{-12}$; slide 10 prices what recovers it</td></tr>
+            <tr><td>PAM4 penalty</td><td>9.54 dB</td><td>Structural, not recoverable by equalisation</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout">
+        <div class="callout-label">Working order for a new channel</div>
+        <p><strong>1.</strong> Get the S-parameters and check them: passive, causal, reciprocal,
+        correctly de-embedded, mixed-mode port map the right way round. <strong>2.</strong> Look
+        for structural damage — a via stub notch near Nyquist, a connector resonance, an
+        unterminated branch — because no equaliser fixes a notch. <strong>3.</strong> Compute
+        the pulse response and read the cursor and the first few pre- and post-cursors; that
+        tells you which blocks you need before you design any of them. <strong>4.</strong> Build
+        the budget and find out what actually dominates. Only then choose the equalisation — and
+        re-check the budget afterwards, because the equaliser you added changed the noise as
+        well as the signal.</p>
+    </div>
+
+    <h3>Further reading</h3>
+    <ul>
+        <li>Bogatin, <em>Signal and Power Integrity — Simplified</em>, 3rd ed., Prentice Hall, 2018.</li>
+        <li>Hall &amp; Heck, <em>Advanced Signal Integrity for High-Speed Digital Designs</em>, Wiley, 2009.</li>
+        <li>Proakis &amp; Salehi, <em>Digital Communications</em>, 5th ed., McGraw-Hill, 2007 — the MMSE decision-feedback equaliser.</li>
+        <li>IEEE Std 802.3-2022, Clause 93 and Clause 162 — link training and the channel operating margin method.</li>
+        <li>OIF CEI-56G and CEI-112G Implementation Agreements.</li>
+        <li>Haykin, <em>Adaptive Filter Theory</em>, 5th ed., Pearson, 2013 — LMS and its sign-sign variants.</li>
+    </ul>
+</section>
+
+
+<script>
+/* ---------- shared canvas helpers -------------------------------------- */
+const C = { bg:'#0d1117', panel:'#161b22', grid:'#21262d', dim:'#8b949e',
+            accent:'#f59e0b', teal:'#34d399', cyan:'#22d3ee', pink:'#f472b6',
+            amber:'#fbbf24', text:'#e6edf3' };
+
+function hidpi(id) {
+    const c = document.getElementById(id);
+    const r = window.devicePixelRatio || 1;
+    const w = c.width, h = c.height;
+    c.style.width = w + 'px'; c.style.height = h + 'px';
+    c.width = Math.round(w * r); c.height = Math.round(h * r);
+    const ctx = c.getContext('2d'); ctx.scale(r, r);
+    return { ctx, w, h };
+}
+function clear(ctx, w, h) { ctx.fillStyle = C.bg; ctx.fillRect(0, 0, w, h); }
+function label(ctx, t, x, y, col, size, align) {
+    ctx.fillStyle = col || C.dim;
+    ctx.font = (size || 10) + "px 'JetBrains Mono', monospace";
+    ctx.textAlign = align || 'left'; ctx.fillText(t, x, y); ctx.textAlign = 'left';
+}
+function dashed(ctx, on) { ctx.setLineDash(on ? [4, 4] : []); }
+
+/* Abramowitz & Stegun 7.1.26 — enough precision for a BER readout. */
+function erfc(x) {
+    const z = Math.abs(x), t = 1 / (1 + 0.5 * z);
+    const y = t * Math.exp(-z * z - 1.26551223 + t * (1.00002368 + t * (0.37409196 +
+        t * (0.09678418 + t * (-0.18628806 + t * (0.27886807 + t * (-1.13520398 +
+        t * (1.48851587 + t * (-0.82215223 + t * 0.17087277))))))))); 
+    return x >= 0 ? y : 2 - y;
+}
+/* log10 of 0.5*erfc(q/sqrt2), asymptotic past the point erfc underflows */
+function logBer(q, k) {
+    k = k || 0.5;
+    if (q < 6) return Math.log10(k * erfc(q / Math.SQRT2));
+    return Math.log10(k * 2 / (q * Math.sqrt(2 * Math.PI))) - q * q / 2 / Math.LN10;
+}
+
+const SD = {"-1":{"taps":[0.012104,0.016845,0.025681,0.045867,0.105504,0.176039,0.128398,0.071704,0.039452,0.023568,0.015587,0.011219,0.008581,0.006848,0.005634,0.004743,0.004066,0.003536,0.003112,0.002766,0.00248,0.00224,0.002037,0.001862,0.001711,0.00158],"cur":5,"boost":-0.71,"ng":-1.3},"-3":{"taps":[0.009673,0.013467,0.02053,0.036609,0.084364,0.144139,0.101426,0.054923,0.029982,0.018032,0.012046,0.008738,0.006716,0.005376,0.004432,0.003737,0.003206,0.002791,0.002458,0.002186,0.001961,0.001772,0.001611,0.001474,0.001355,0.001251],"cur":5,"boost":0.59,"ng":-2.56},"-6":{"taps":[0.006981,0.009738,0.014873,0.026529,0.061413,0.109273,0.070616,0.035025,0.018651,0.011452,0.007883,0.005848,0.004559,0.003682,0.003053,0.002584,0.002224,0.00194,0.001712,0.001525,0.001369,0.001239,0.001128,0.001032,0.000949,0.000877],"cur":5,"boost":2.88,"ng":-4.03},"-9":{"taps":[0.005113,0.007159,0.010981,0.019649,0.045762,0.085647,0.048849,0.020092,0.00999,0.006453,0.004764,0.003712,0.00298,0.002449,0.002053,0.001752,0.001516,0.001329,0.001176,0.001051,0.000946,0.000857,0.000782,0.000717,0.00066,0.00061],"cur":5,"boost":5.47,"ng":-5.01},"-12":{"taps":[0.00385,0.005434,0.008417,0.015241,0.036046,0.069613,0.032751,0.008561,0.003247,0.002594,0.002391,0.002109,0.001808,0.001541,0.001322,0.001145,0.001002,0.000886,0.000789,0.000709,0.000641,0.000583,0.000533,0.00049,0.000452,0.000419],"cur":5,"boost":8.25,"ng":-5.59},"-15":{"taps":[0.002964,0.004223,0.006617,0.012138,0.029147,0.058705,0.021845,0.000116,-0.001838,-0.000317,0.000621,0.000928,0.000952,0.000883,0.000794,0.000709,0.000633,0.000568,0.000512,0.000464,0.000423,0.000387,0.000355,0.000328,0.000304,0.000283],"cur":5,"boost":11.14,"ng":-5.92},"meta":{"fb":28.0,"ui_ps":35.714,"fnyq":14.0,"amp_mv":400.0,"il_nyq":-33.33,"tpd":162.97,"sig_rx":1.8,"sig_xt":3.0,"rj_fs":350.0}};
+
+/* ---------- 04 : the via stub ------------------------------------------ */
+(function () {
+    const { ctx, w, h } = hidpi('vs-plot');
+    const sL = document.getElementById('vs-len');
+    const TPD = 162.97e-12, Z0 = 100.0, ZS = 35.0, FMAX = 40;   // GHz
+
+    // excess loss of a lossy open stub sitting in shunt across a matched line
+    function excessDb(fGHz, lenIn) {
+        const aDb = (1.0 * Math.sqrt(fGHz) + 0.2 * fGHz) * lenIn;   // stub is lossy
+        const a = aDb / 8.686;
+        const b = 2 * Math.PI * fGHz * 1e9 * TPD * lenIn;
+        // tanh(a + jb)
+        const sh = Math.sinh(2 * a), ch = Math.cosh(2 * a);
+        const den = ch + Math.cos(2 * b);
+        const re = sh / den, im = Math.sin(2 * b) / den;
+        const yr = re / ZS, yi = im / ZS;
+        const xr = 1 + yr * Z0 / 2, xi = yi * Z0 / 2;
+        return 20 * Math.log10(Math.hypot(xr, xi));
+    }
+
+    function draw(lenIn, fn) {
+        clear(ctx, w, h);
+        const padL = 50, padR = 16, padT = 26, padB = 32;
+        const YMAX = 40;
+        const X = g => padL + g / FMAX * (w - padL - padR);
+        const Y = d => h - padB - d / YMAX * (h - padT - padB);
+        ctx.strokeStyle = C.grid; ctx.lineWidth = 1;
+        for (let d = 0; d <= YMAX; d += 10) {
+            ctx.beginPath(); ctx.moveTo(padL, Y(d)); ctx.lineTo(w - padR, Y(d)); ctx.stroke();
+            label(ctx, d + '', padL - 6, Y(d) + 3, C.dim, 9, 'right');
+        }
+        ctx.strokeStyle = C.pink; ctx.lineWidth = 1.9;
+        ctx.beginPath();
+        for (let i = 0; i <= 1200; i++) {
+            const g = 0.05 + i / 1200 * FMAX;
+            const yy = Math.max(padT, Math.min(h - padB, Y(excessDb(g, lenIn))));
+            if (i === 0) ctx.moveTo(X(g), yy); else ctx.lineTo(X(g), yy);
+        }
+        ctx.stroke();
+        ctx.strokeStyle = C.amber; ctx.lineWidth = 1.2; dashed(ctx, true);
+        ctx.beginPath(); ctx.moveTo(X(14), padT); ctx.lineTo(X(14), h - padB); ctx.stroke();
+        dashed(ctx, false);
+        label(ctx, 'excess insertion loss, dB', padL - 6, padT - 8, C.text, 10);
+        label(ctx, 'frequency (GHz)', w - padR, h - 8, C.dim, 10, 'right');
+        label(ctx, 'Nyquist', X(14) + 5, padT + 12, C.amber, 9);
+        if (fn < FMAX) label(ctx, 'λ/4', X(fn), h - 8, C.pink, 9, 'center');
+    }
+
+    function update() {
+        const mil = parseFloat(sL.value), lenIn = mil / 1000.0;
+        const fn = 1 / (4 * 162.97e-12 * lenIn) / 1e9;
+        const x = excessDb(14, lenIn);
+        document.getElementById('vs-len-val').textContent = mil.toFixed(0);
+        document.getElementById('vs-f').textContent = fn > 400 ? '> 400 GHz'
+            : fn.toFixed(1) + ' GHz';
+        document.getElementById('vs-x').textContent = x.toFixed(1) + ' dB';
+        document.getElementById('vs-t').textContent =
+            (162.97 * lenIn).toFixed(1) + ' ps';
+        const v = document.getElementById('vs-verdict');
+        if (x > 6) { v.className = 'verdict bad';
+            v.textContent = 'notch near Nyquist — no equaliser recovers this'; }
+        else if (x > 1.5) { v.className = 'verdict bad';
+            v.textContent = 'stub is eating real margin at Nyquist'; }
+        else { v.className = 'verdict ok';
+            v.textContent = 'resonance pushed well clear of the band'; }
+        draw(lenIn, fn);
+    }
+    sL.addEventListener('input', update);
+    document.querySelectorAll('[data-vs]').forEach(b => b.addEventListener('click', () => {
+        sL.value = b.dataset.vs; update();
+    }));
+    update();
+})();
+
+/* ---------- 07 : the whole equaliser chain ----------------------------- */
+(function () {
+    const TP = hidpi('eq-taps'), BG = hidpi('eq-budget');
+    const SETTINGS = ['-1', '-3', '-6', '-9', '-12', '-15'];
+    const sC = document.getElementById('eq-ctle'),
+          sN = document.getElementById('eq-ndfe'),
+          sX = document.getElementById('eq-xt');
+    let ffeOn = true, pam4 = false;
+    const AMP = 400.0, SIG_RX = 1.8, SIG_JIT = 0.10;
+
+    function chain() {
+        const d = SD[SETTINGS[+sC.value]];
+        let t = d.taps.slice(), cur = d.cur;
+        let ffe = null;
+        if (ffeOn) {
+            // zero-force the first two pre-cursors with two transmit pre-taps
+            const a11 = t[cur + 1], a12 = t[cur], a21 = t[cur], a22 = t[cur - 1];
+            const b1 = -t[cur - 1], b2 = -t[cur - 2];
+            const det = a11 * a22 - a12 * a21;
+            const cm2 = (b1 * a22 - a12 * b2) / det;
+            const cm1 = (a11 * b2 - b1 * a21) / det;
+            let c = [cm2, cm1, 1.0];
+            const s = c.reduce((p, v) => p + Math.abs(v), 0);
+            c = c.map(v => v / s);
+            ffe = c;
+            const out = new Array(t.length + 2).fill(0);
+            for (let i = 0; i < t.length; i++)
+                for (let k = 0; k < 3; k++) out[i + k] += t[i] * c[k];
+            t = out; cur = cur + 2;
+        }
+        const nb = +sN.value;
+        const cancelled = [];
+        for (let k = 1; k <= nb && cur + k < t.length; k++) {
+            cancelled.push(cur + k); t[cur + k] = 0;
+        }
+        return { t, cur, d, ffe, cancelled };
+    }
+
+    function drawTaps(t, cur, cancelled) {
+        const { ctx, w, h } = TP;
+        clear(ctx, w, h);
+        const padL = 42, padR = 12, padT = 26, padB = 30;
+        const lo = Math.max(0, cur - 5), hi = Math.min(t.length - 1, cur + 16);
+        let peak = 0;
+        for (let i = lo; i <= hi; i++) peak = Math.max(peak, Math.abs(t[i]));
+        peak = peak || 1;
+        const X = i => padL + (i - lo) / (hi - lo) * (w - padL - padR);
+        const mid = padT + (h - padT - padB) * 0.55;
+        const Y = v => mid - v / peak * (h - padT - padB) * 0.45;
+        ctx.strokeStyle = C.grid; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(padL, Y(0)); ctx.lineTo(w - padR, Y(0)); ctx.stroke();
+        const canc = new Set(cancelled);
+        for (let i = lo; i <= hi; i++) {
+            const col = i === cur ? C.teal : (canc.has(i) ? C.cyan : C.pink);
+            ctx.strokeStyle = col; ctx.lineWidth = i === cur ? 2.6 : 1.8;
+            ctx.beginPath(); ctx.moveTo(X(i), Y(0)); ctx.lineTo(X(i), Y(t[i])); ctx.stroke();
+            ctx.fillStyle = col;
+            ctx.beginPath(); ctx.arc(X(i), Y(t[i]), 2.6, 0, 2 * Math.PI); ctx.fill();
+        }
+        label(ctx, 'sampled pulse response', w / 2, 16, C.text, 10, 'center');
+        label(ctx, 'cursor', X(cur), h - 8, C.teal, 9, 'center');
+        label(ctx, 'pre', X(lo) + 4, h - 8, C.dim, 9);
+        label(ctx, 'post', w - padR, h - 8, C.dim, 9, 'right');
+    }
+
+    function drawBudget(parts, tot, q, target) {
+        const { ctx, w, h } = BG;
+        clear(ctx, w, h);
+        const padL = 44, padR = 14, padT = 26, padB = 42;
+        const mx = Math.max(tot, 3.5);
+        const X = v => padL + v / mx * (w - padL - padR);
+        const bh = 22, gap = 12;
+        label(ctx, 'noise budget, mV rms', w / 2, 16, C.text, 10, 'center');
+        parts.forEach((p, i) => {
+            const y = padT + 8 + i * (bh + gap);
+            ctx.fillStyle = C.panel; ctx.fillRect(padL, y, w - padL - padR, bh);
+            ctx.fillStyle = p[2]; ctx.fillRect(padL, y, X(p[1]) - padL, bh);
+            label(ctx, p[0], padL, y - 4, C.dim, 9);
+            label(ctx, p[1].toFixed(2), w - padR, y - 4, p[2], 9, 'right');
+        });
+        const y = padT + 8 + parts.length * (bh + gap);
+        label(ctx, 'total ' + tot.toFixed(2) + ' mV rms', padL, y + 12, C.text, 10);
+        label(ctx, (pam4 ? 'PAM4 ' : 'NRZ ') + 'Q = ' + q.toFixed(2) +
+                   '   target ' + target.toFixed(2), padL, y + 28, C.teal, 10);
+    }
+
+    function update() {
+        const { t, cur, d, cancelled } = chain();
+        const ne = Math.pow(10, d.ng / 20);
+        const xt = parseFloat(sX.value);
+        const h0 = t[cur];
+        let sq = 0;
+        for (let i = 0; i < t.length; i++) if (i !== cur) sq += t[i] * t[i];
+        const sIsi = Math.sqrt(sq) * AMP;
+        const sRx = SIG_RX * ne, sXt = xt * ne, sJit = SIG_JIT;
+        const sTot = Math.hypot(Math.hypot(sRx, sXt), Math.hypot(sJit, sIsi));
+        const sig = h0 * AMP;
+        let q = sig / sTot;
+        const target = pam4 ? 3.5985 : 7.034;
+        if (pam4) q = q / 3.0;
+        const lb = logBer(q, pam4 ? 0.75 : 0.5);
+
+        document.getElementById('eq-ctle-val').textContent = '−' +
+            SETTINGS[+sC.value].replace('-', '');
+        document.getElementById('eq-ndfe-val').textContent = sN.value;
+        document.getElementById('eq-xt-val').textContent = xt.toFixed(1);
+        document.getElementById('eq-boost').textContent = d.boost.toFixed(1) + ' dB';
+        document.getElementById('eq-sig').textContent = sig.toFixed(1) + ' mV';
+        document.getElementById('eq-isi').textContent = sIsi.toFixed(2) + ' mV';
+        document.getElementById('eq-noise').textContent = sTot.toFixed(2) + ' mV';
+        document.getElementById('eq-q').textContent = q.toFixed(2);
+        document.getElementById('eq-ber').textContent = '1e' + lb.toFixed(1);
+        const margin = 20 * Math.log10(q / target);
+        const v = document.getElementById('eq-verdict');
+        const tname = pam4 ? 'the KP4 FEC threshold' : '1e−12';
+        if (margin >= 0) { v.className = 'verdict ok';
+            v.textContent = '+' + margin.toFixed(2) + ' dB of margin to ' + tname; }
+        else { v.className = 'verdict bad';
+            v.textContent = Math.abs(margin).toFixed(2) + ' dB short of ' + tname; }
+        drawTaps(t, cur, cancelled);
+        drawBudget([['crosstalk', sXt, C.pink], ['residual ISI', sIsi, C.amber],
+                    ['receiver noise', sRx, C.cyan], ['jitter', sJit, C.dim]],
+                   sTot, q, target);
+    }
+
+    [sC, sN, sX].forEach(e => e.addEventListener('input', update));
+    document.getElementById('eq-ffe').addEventListener('click', function () {
+        ffeOn = !ffeOn;
+        this.textContent = 'transmit FFE: ' + (ffeOn ? 'on' : 'off');
+        this.className = ffeOn ? 'btn' : 'btn secondary';
+        update();
+    });
+    document.getElementById('eq-pam').addEventListener('click', function () {
+        pam4 = !pam4;
+        this.textContent = 'signalling: ' + (pam4 ? 'PAM4' : 'NRZ');
+        this.className = pam4 ? 'btn' : 'btn secondary';
+        update();
+    });
+    document.querySelector('[data-eq-reset]').addEventListener('click', () => {
+        sC.value = 4; sN.value = 5; sX.value = 3.0;
+        ffeOn = true; pam4 = false;
+        const b1 = document.getElementById('eq-ffe'), b2 = document.getElementById('eq-pam');
+        b1.textContent = 'transmit FFE: on'; b1.className = 'btn';
+        b2.textContent = 'signalling: NRZ'; b2.className = 'btn secondary';
+        update();
+    });
+    update();
+})();
+</script>
+
+<div class="footer">
+    <p>Deck 03 of the Matrix Methods in Engineering series. Companions: <a href="https://brendanjameslynskey.github.io/Matrix_Methods_Network_Parameters/">Network Parameters (S, Z, Y)</a> and <a href="https://brendanjameslynskey.github.io/Matrix_Concepts_Digital_Filters/">Digital Filter Design</a>.</p>
+    <p style="margin-top:.6rem">Single-page HTML &middot; KaTeX-rendered maths &middot; no build step.
+    <a href="https://github.com/BrendanJamesLynskey/SerDes_Equalisation">Source on GitHub</a>
+    &middot; <a href="SerDes_Equalisation.pdf">long-form PDF</a></p>
+</div>
+
+</body>
+</html>
