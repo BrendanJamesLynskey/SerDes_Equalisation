@@ -147,7 +147,7 @@
         <li><a href="#slide-10">It does not close: what would fix it</a></li>
         <li><a href="#slide-11">The same channel at 56 Gb/s PAM4</a></li>
         <li><a href="#slide-12">Adaptation and training</a></li>
-        <li><a href="#slide-13">Where this is going</a></li>
+        <li><a href="#slide-13">Where this is going: chiplets, memory, CXL</a></li>
         <li><a href="#slide-14">Cheat sheet</a></li>
     </ul>
 </section>
@@ -1206,6 +1206,145 @@
         </div>
     </div>
 
+    <h3>Chiplets — the limit case of shortening the copper</h3>
+    <p>Take that third response to its conclusion and you arrive at the chiplet. If the
+    expensive part of a link is the channel, the cheapest possible channel is a couple of
+    millimetres of wiring on a silicon interposer or an embedded bridge, with bumps on a pitch
+    measured in tens of micrometres. At that reach the loss is negligible across the whole band
+    — and <strong>you stop needing the apparatus this deck is about</strong>. No CTLE, no
+    feedback taps, no clock recovery loop per lane: a forwarded clock will do, because the
+    lanes are short and matched enough that skew between them is a few picoseconds. Often the
+    signalling is not even differential, because there is no common-mode environment to
+    reject.</p>
+    <p>What you buy with the power you no longer spend on equalisation is <strong>width</strong>.
+    A long-reach SerDes at 112 Gb/s costs several picojoules per bit; a die-to-die link over an
+    advanced package costs a fraction of one. Spend the same power at a fortieth of the energy
+    per bit and you can afford hundreds or thousands of lanes instead of dozens — which is why
+    nobody quotes gigabits per lane for a chiplet interface. They quote <strong>bandwidth
+    density</strong>, terabits per second per millimetre of die edge, because the edge is the
+    scarce resource. The design problem inverts: from "how do I recover a signal that crossed
+    thirty inches" to "how many wires fit along this shoreline, and how little energy can I
+    move a bit with".</p>
+
+    <table>
+        <thead><tr><th></th><th>Advanced package</th><th>Standard package</th><th>Board SerDes</th></tr></thead>
+        <tbody>
+            <tr><td>Medium</td><td>Silicon interposer, bridge or fine-pitch fanout</td><td>Organic substrate</td><td>Laminate, connectors, sometimes a backplane</td></tr>
+            <tr><td>Bump / ball pitch</td><td>Tens of µm</td><td>≈100 µm</td><td>Hundreds of µm at the package ball</td></tr>
+            <tr><td>Reach</td><td>A couple of mm</td><td>Up to a few tens of mm</td><td>Inches to tens of inches</td></tr>
+            <tr><td>Signalling</td><td>Single-ended, forwarded clock, little or no EQ</td><td>Single-ended, some EQ</td><td>Differential, full equaliser chain, CDR per lane</td></tr>
+            <tr><td>What is scarce</td><td>Die edge and bump count</td><td>Substrate routing</td><td>Channel loss budget</td></tr>
+        </tbody>
+    </table>
+
+    <p><strong>UCIe</strong> standardises this across both package classes so dies from
+    different vendors can in principle be assembled into one part; OCP's <strong>Bunch of
+    Wires</strong> takes a similar line. The proprietary equivalents came first and ship in
+    volume — the on-package fabric between compute and I/O dies in AMD's processors, the
+    die-to-die links between Intel's tiles, the interconnects joining accelerator dies in the
+    largest training parts. The motivation is not mainly signalling: a reticle has a maximum
+    size, yield falls sharply with die area, and analogue and I/O circuits do not benefit from
+    a leading-edge process the way logic does. The signalling advantage is a consequence of the
+    packaging decision rather than its reason — but a large one.</p>
+
+    <div class="callout">
+        <div class="callout-label">Where this leaves the equaliser</div>
+        <p>Chiplets do not abolish the problem, they <em>relocate</em> it. Every bit crossing
+        two millimetres of interposer still has to leave the package eventually, and the link
+        that takes it out is harder than before because the package is denser and hotter and
+        the rate has risen. The effect is to <strong>concentrate</strong> the difficulty: fewer,
+        faster, more aggressively equalised external links, surrounded by a great many
+        nearly-free internal ones.</p>
+    </div>
+
+    <h3>Memory — the last parallel bus</h3>
+    <p>The processor-to-memory interface is the one place where the wide, single-ended,
+    common-clock parallel bus of slide 02a never went away. DDR5 runs a 64-bit data path plus
+    check bits at several thousand megatransfers per second, and is subject to everything that
+    killed the parallel bus elsewhere: skew between bits, stubs wherever more than one module
+    hangs off a channel, and a pin count that has become a dominant packaging constraint — a
+    server processor with a dozen channels spends well over a thousand pins on memory alone.</p>
+    <p>It has survived by <em>importing the serial world's toolkit</em>. Modern DRAM trains
+    per-bit timing and reference levels at initialisation, and DDR5 specifies a
+    <strong>decision-feedback equaliser on the DRAM's data receivers</strong> — the block from
+    slide 06, in the least likely place. But the rate still rises while the number of modules a
+    channel can carry falls, which is the capacity-versus-bandwidth bind.</p>
+
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel accent-border">
+            <h4>Escape one: serialise</h4>
+            <p>A buffer chip on the module accepts a few high-rate serial lanes and drives
+            conventional DRAM behind it — collapsing pin count and removing the multi-drop stub
+            at a stroke. IBM's <strong>Open Memory Interface</strong> has done this in shipping
+            POWER systems for years, reaching hundreds of GB/s per socket over a handful of
+            lanes. More visibly, <strong>CXL-attached memory</strong> puts DRAM behind what is
+            electrically a PCIe link, and adds pooling across hosts and mixed media behind one
+            interface.</p>
+        </div>
+        <div class="diagram-panel r">
+            <h4>Escape two: wider and shorter</h4>
+            <p><strong>HBM</strong> stacks DRAM dies and connects them over a thousand-odd wires
+            at single-digit gigabits each, across a couple of millimetres of interposer — the
+            chiplet answer applied to memory. It reaches bandwidths no pin-limited external
+            interface can approach, and pays in capacity, cost and the impossibility of
+            upgrading it after manufacture.</p>
+        </div>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">The precedent worth remembering</div>
+        <p>This has been tried before. <strong>Fully Buffered DIMMs</strong> put an advanced
+        memory buffer on every module in the mid-2000s and were abandoned over power and, above
+        all, <em>latency</em> — every hop through a buffer costs time a processor stalled on a
+        load cannot hide. That is why CXL memory is deployed as a capacity <em>tier</em> rather
+        than a replacement for the direct channels: the round trip is roughly double a native
+        DDR access. The likely settlement is that memory stops being one thing — a near tier in
+        the package, wide and parallel and fast; a far tier behind a serial link, large and
+        pooled and slower; conventional modules squeezed between them.</p>
+    </div>
+
+    <h3>CXL — when the physical layer lands on the critical path</h3>
+    <p>CXL is not a new electrical interface at all: it runs on the <strong>PCIe physical
+    layer</strong> and reuses its link training, the two ends negotiating into CXL mode during
+    the same sequence that would otherwise bring up an ordinary PCIe link. Everything on slide
+    01b about presets, retimers and channel budgets applies unchanged. What is new sits above
+    it — three protocols multiplexed on one link, and a coherence model that lets a device and
+    a host <em>share</em> memory rather than copy it.</p>
+
+    <table>
+        <thead><tr><th>Sub-protocol</th><th>What it carries</th><th>Why it exists</th></tr></thead>
+        <tbody>
+            <tr><td><strong>CXL.io</strong></td><td>Discovery, configuration, interrupts, bulk transfer</td><td>Essentially PCIe. Every CXL link has it, and a device falls back to it if CXL mode is not negotiated</td></tr>
+            <tr><td><strong>CXL.cache</strong></td><td>A device coherently caching the host's memory</td><td>Lets an accelerator or NIC work on host data with no explicit copy and no software-managed coherence</td></tr>
+            <tr><td><strong>CXL.mem</strong></td><td>The host reading and writing memory attached to the device</td><td>Lets memory live behind the link and still be addressed as memory — the capacity tier above</td></tr>
+        </tbody>
+    </table>
+    <p>Type 1 devices have a coherent cache but no memory of their own (a smart NIC); type 2
+    have both (an accelerator); type 3 use CXL.mem alone (a memory expander). Later revisions
+    widened the topology around them — switching and memory pooling across hosts, then
+    multi-level fabrics, peer-to-peer traffic and genuine sharing of a region between hosts
+    with hardware coherence. The destination is a rack where processors, memory and
+    accelerators are provisioned separately rather than bolted together in fixed ratios.</p>
+
+    <div class="callout">
+        <div class="callout-label">Why this belongs in a deck about equalisation</div>
+        <p>Because it moves a serial link onto the <strong>critical path of a load
+        instruction</strong>, and so changes the currency the physical layer is paid in. A
+        switch tolerates the ~100 ns a strong FEC costs; a processor stalled on a cache miss
+        cannot hide any of it. That one fact propagates all the way down: it is why PCIe 6.0
+        pairs a deliberately weak FEC with CRC and link-level retry rather than Ethernet's
+        Reed–Solomon code, why flit framing exists, why the latency-optimised variant splits its
+        check so the first part of a flit can be forwarded before the whole is verified, and
+        why retimer hops are constrained in a way a network path's are not.</p>
+        <p style="margin-top:.6rem">It also puts the PAM4 decision in an uncomfortable light.
+        CXL 3.0 moves to the 64 GT/s physical layer — four-level signalling, and the
+        <strong>9.5 dB penalty of slide 11</strong> — landing on a link where the usual way of
+        buying that margin back is forbidden. <em>You cannot spend latency here.</em> The margin
+        has to come from a shorter channel, a better board, fewer connectors or a lower-noise
+        receiver: which is to say, from the table on slide 10, read with one column deleted.</p>
+    </div>
+
+    <h3>What does not change</h3>
     <p>For all of that, the structure of the problem has not changed since 10GBASE-KR. There is
     a channel you cannot alter, a pulse response that describes it completely, a set of filters
     whose taps are the solution of a quadratic minimisation, and a budget that decides whether

@@ -39,12 +39,12 @@ decision-feedback taps are designed against that pulse response.
 - Seven remedies priced in dB: the board buys 1.5–2.5 dB, the silicon buys 0.26–0.46 dB
 - The same channel at 56 Gb/s PAM4: where the 9.5 dB goes, and why FEC stopped being optional
 - Adaptation, link training, and how the CDR and the equaliser fight
-- Where this is going: MLSE, soft-decision FEC, co-packaged and linear-drive optics
+- Where this is going: MLSE and soft-decision FEC; co-packaged and linear-drive optics; **chiplets** as the limit case of shortening the copper (UCIe, bandwidth density, and why the equaliser is relocated rather than abolished); **memory** as the last parallel bus, with its two opposite escapes (serialise via OMI and CXL, or go wide and short via HBM) and the Fully Buffered DIMM precedent; and **CXL**, where the physical layer lands on the critical path of a load instruction and latency becomes the currency the budget is paid in
 
 ## Long-form companion
 
 The same material as a written report:
-[SerDes_Equalisation.pdf](SerDes_Equalisation.pdf) (24 pp).
+[SerDes_Equalisation.pdf](SerDes_Equalisation.pdf) (27 pp).
 
 ## Companion decks
 
