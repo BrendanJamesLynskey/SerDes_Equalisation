@@ -59,6 +59,7 @@ Indexed together under [Signal Integrity &amp; High-Speed Digital Design](https:
 
 | Repo | How it relates |
 | --- | --- |
+| **[Signal Integrity &amp; High-Speed Digital Design](https://github.com/BrendanJamesLynskey/Signal_Integrity)** | **The eleven-deck series this channel runs through.** Deck 04 computes the via stub of §3.4 in full, deck 06 prices the crosstalk of §7, deck 08 decomposes the jitter, and decks 10 and 11 import this channel directly — deck 11 running a channel operating margin on it and reconciling the result with the 1.36 dB shortfall found here |
 | [Modern SoC Design](https://github.com/BrendanJamesLynskey/SoC) | Sixteen decks on SoC design. Deck 04 covers high-speed SerDes and I/O from the silicon side, deck 01 advanced packaging and chiplets (§11.2 here), deck 08 CXL in accelerator SoCs (§11.4), deck 09 power delivery and deck 13 clocks and resets |
 | [High-Speed Serial Links — interview prep](https://github.com/BrendanJamesLynskey/Interview_High_Speed_Serial_Links) | The closest neighbour: written notes and worked problems on link budgets, driver architectures, PLL jitter, CTLE / DFE / CDR, PCIe Gen5-6, UCIe, NVLink, eye analysis, crosstalk and PDN coupling |
 | [Kramers–Kronig Relations](https://github.com/BrendanJamesLynskey/Kramers_Kronig_Relations) | A full treatment of the causality constraint that §6 leans on when fitting measured S-parameters |
