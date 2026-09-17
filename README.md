@@ -24,7 +24,7 @@ decision-feedback taps are designed against that pulse response.
 - What closes an eye — loss, reflection, crosstalk, jitter, and which block fixes each
 - A short history: XAUI → 10GBASE-KR → CEI-28G → PAM4 and mandatory FEC → ADC-DSP receivers → 224G
 - The same problem on every other bus — PCIe 1.0 through 7.0 and its negotiated preset table, USB4's PAM3, SAS, InfiniBand, and UCIe at the far end of the reach axis
-- Laminates by generation: FR-4 through Megtron 7, with Dk, Df and dielectric loss per inch, plus copper roughness and glass weave
+- Laminates by generation: FR-4 through Megtron 7, with Dk, Df and dielectric loss per inch, plus copper roughness, glass weave, and why the RF laminates (RO4350B and the PTFE grades) are not the answer despite being lower loss
 - The channel characterised: stackup, lengths, insertion and return loss, mode conversion
 - **Interactive:** the via stub — a 110 mil barrel puts a λ/4 notch within a percent of Nyquist
 - From S-parameters to a pulse response: cursor, pre-cursors, post-cursors, and the closed eye in numbers
@@ -41,7 +41,7 @@ decision-feedback taps are designed against that pulse response.
 ## Long-form companion
 
 The same material as a written report:
-[SerDes_Equalisation.pdf](SerDes_Equalisation.pdf) (18 pp).
+[SerDes_Equalisation.pdf](SerDes_Equalisation.pdf) (19 pp).
 
 ## Companion decks
 

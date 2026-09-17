@@ -361,6 +361,46 @@
     </div>
 
     <div class="callout">
+        <div class="callout-label">Why the RF laminates are not the answer</div>
+        <p>The one surprising row above is <strong>Rogers RO4350B</strong>: at 0.22 dB/in it is
+        <em>lower loss</em> than the Megtron 6 that slide 10 recommends — and yet nobody builds
+        a backplane out of it. The reasons are all system fit rather than decibels.</p>
+        <p style="margin-top:.6rem">It is engineered for <strong>Dk stability</strong> (±0.05
+        over temperature and lot), which matters when the dielectric constant sets a filter
+        passband or an antenna length and is of no use whatever to a serial link. Its Dk of
+        3.48 is also too <em>high</em>: digital laminates chase low Dk deliberately, because a
+        lower dielectric constant allows wider traces at the same 100&nbsp;Ω differential
+        impedance, and conductor loss falls as trace width rises.</p>
+        <p style="margin-top:.6rem">And the conductor term is no detail here — it is comparable
+        to the dielectric term and is dominated by <strong>foil roughness</strong>, where
+        differences of 0.1–0.2 dB/in between grades are typical. So the 0.05 dB/in RO4350B
+        gains on Megtron 6 in the dielectric is smaller than the foil advantage it does not
+        come packaged with: the digital vendors sell core, prepreg, glass style and foil
+        profile as one qualified system, and the RF vendors offer a narrower range.</p>
+    </div>
+
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel r">
+            <h4>Two more practical objections</h4>
+            <p>RF laminates are not offered in the <strong>spread-glass</strong> constructions
+            that control intra-pair skew — a single-ended RF line does not care about weave, a
+            differential pair very much does. And the bondply system and reliability
+            qualification target thin, low-layer-count boards, not a forty-layer backplane
+            built by sequential lamination with tens of thousands of plated through-holes to
+            survive thermal cycling. The ceramic filler is abrasive enough to matter to drill
+            life, and the laminate costs several times as much per square foot.</p>
+        </div>
+        <div class="diagram-panel g">
+            <h4>Where they do belong</h4>
+            <p>As an <strong>RF island hybrid-laminated</strong> into an otherwise digital
+            stackup — the sensible way to use them when a board needs both. The PTFE-based
+            laminates (RO3003, RT/duroid) take every one of these trade-offs further in the
+            wrong direction: lower loss again, but poorer dimensional stability, special
+            processing for adhesion, and worse through-hole reliability in a thick board.</p>
+        </div>
+    </div>
+
+    <div class="callout">
         <div class="callout-label">How the generations map onto materials</div>
         <p>Up to a few Gb/s, ordinary FR-4 and ordinary foil. At 8–10 Gb/s, improved FR-4 with
         reverse-treated foil. At 16–28 Gb/s, a genuine low-loss laminate, VLP copper and spread
