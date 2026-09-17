@@ -23,12 +23,15 @@ decision-feedback taps are designed against that pulse response.
 
 - What closes an eye — loss, reflection, crosstalk, jitter, and which block fixes each
 - A short history: XAUI → 10GBASE-KR → CEI-28G → PAM4 and mandatory FEC → ADC-DSP receivers → 224G
+- The same problem on every other bus — PCIe 1.0 through 7.0 and its negotiated preset table, USB4's PAM3, SAS, InfiniBand, and UCIe at the far end of the reach axis
+- Laminates by generation: FR-4 through Megtron 7, with Dk, Df and dielectric loss per inch, plus copper roughness and glass weave
 - The channel characterised: stackup, lengths, insertion and return loss, mode conversion
 - **Interactive:** the via stub — a 110 mil barrel puts a λ/4 notch within a percent of Nyquist
 - From S-parameters to a pulse response: cursor, pre-cursors, post-cursors, and the closed eye in numbers
 - The four equaliser blocks and what each one costs — CTLE, transmit FFE, receive FFE, DFE
 - **Interactive:** the whole chain — CTLE setting, transmit FFE, DFE taps and crosstalk, with a live noise budget, Q and BER
-- The worked design stage by stage, with tap values and eye diagrams
+- The worked design stage by stage, in both millivolts and normalised to the cursor — which blocks must shrink the cursor and why, and what actually falls monotonically (signal-to-noise, not the cursor)
+- Tap values and eye diagrams
 - The noise budget, and why reading it before choosing a fix matters
 - Seven remedies priced in dB: the board buys 1.5–2.5 dB, the silicon buys 0.26–0.46 dB
 - The same channel at 56 Gb/s PAM4: where the 9.5 dB goes, and why FEC stopped being optional
@@ -38,7 +41,7 @@ decision-feedback taps are designed against that pulse response.
 ## Long-form companion
 
 The same material as a written report:
-[SerDes_Equalisation.pdf](SerDes_Equalisation.pdf) (13 pp).
+[SerDes_Equalisation.pdf](SerDes_Equalisation.pdf) (18 pp).
 
 ## Companion decks
 

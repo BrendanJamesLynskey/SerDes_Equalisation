@@ -132,12 +132,14 @@
     <ul class="contents-list">
         <li><a href="#slide-01">What closes an eye</a></li>
         <li><a href="#slide-02">A short history</a></li>
+        <li><a href="#slide-02b">The same problem on every other bus</a></li>
         <li><a href="#slide-03">The channel, characterised</a></li>
+        <li><a href="#slide-03b">Laminates: Dk, Df and copper roughness</a></li>
         <li><a href="#slide-04">Interactive: the via stub</a></li>
         <li><a href="#slide-05">From S-parameters to a pulse response</a></li>
         <li><a href="#slide-06">The equaliser blocks, and what each costs</a></li>
         <li><a href="#slide-07">Interactive: the whole chain</a></li>
-        <li><a href="#slide-08">The worked design and its eyes</a></li>
+        <li><a href="#slide-08">The worked design, and what actually falls</a></li>
         <li><a href="#slide-09">The noise budget</a></li>
         <li><a href="#slide-10">It does not close: what would fix it</a></li>
         <li><a href="#slide-11">The same channel at 56 Gb/s PAM4</a></li>
@@ -222,6 +224,61 @@
     </div>
 </section>
 
+<section class="slide" id="slide-02b">
+    <div class="slide-number">02b</div>
+    <h2>The Same Problem, Solved Again on Every Other Bus</h2>
+    <p>Ethernet and the OIF agreements are one branch of the family. <strong>PCI Express</strong>
+    is the other one most engineers meet, and it faces the same physics under quite different
+    commercial constraints. A backplane Ethernet link joins two devices chosen by the same
+    architect; a PCIe link crosses a socket, a connector and an add-in card from a different
+    vendor, and must interoperate with parts designed a decade apart. It cannot simply let both
+    ends adapt freely and hope.</p>
+
+    <p>Its answer, from PCIe 3.0 in 2010, is a negotiated <strong>preset</strong> table: rather
+    than requesting arbitrary tap movements, the receiver asks the far-end transmitter for one
+    of eleven predefined combinations of de-emphasis and pre-shoot, agreed over a four-phase
+    link equalisation procedure. More constrained than 10GBASE-KR's continuous negotiation, and
+    deliberately so — a finite, published set of transmitter behaviours is what makes
+    cross-vendor interoperability testable.</p>
+
+    <table>
+        <thead><tr><th>Generation</th><th>Rate / lane</th><th>Year</th><th>What was added</th></tr></thead>
+        <tbody>
+            <tr><td>PCIe 1.0 / 2.0</td><td>2.5, 5.0 GT/s</td><td>2003, 2007</td><td>8b/10b coding; fixed de-emphasis chosen by the platform</td></tr>
+            <tr><td>PCIe 3.0</td><td>8 GT/s</td><td>2010</td><td>128b/130b, transmitter presets and the four-phase link equalisation procedure — PCIe becomes an equalised link</td></tr>
+            <tr><td>PCIe 4.0 / 5.0</td><td>16, 32 GT/s</td><td>2017, 2019</td><td>Tighter channel budgets; retimers become common; connector and card loss start to dominate</td></tr>
+            <tr><td>PCIe 6.0</td><td>64 GT/s</td><td>2022</td><td>PAM4, FLIT framing, and a deliberately <em>lightweight</em> FEC backed by link-level retry</td></tr>
+            <tr><td>PCIe 7.0</td><td>128 GT/s</td><td>2025 (draft)</td><td>PAM4 at 64 GBd; reach becomes acute and optical options enter the discussion</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout">
+        <div class="callout-label">Why PCIe chose a weaker code than Ethernet</div>
+        <p>Both moved to PAM4; both had to add FEC to survive it; they made opposite trades.
+        Ethernet tolerates the ~100 ns a Reed–Solomon KP4 decoder costs, because that is
+        nothing beside the latency of the network it sits in. PCIe is a load-store fabric where
+        a processor may be stalled waiting for the answer, so latency is part of the contract.
+        PCIe 6.0 therefore pairs a much lighter FEC with a CRC and link-level retry for what it
+        misses. <strong>Same physics, same constellation, different answer, because the cost
+        function is different.</strong></p>
+    </div>
+
+    <p>The pattern repeats elsewhere, and the interesting axis is <em>reach</em> rather than
+    rate. USB grew from 5 Gb/s in 2008 to 20 Gb/s per lane with USB4, then to 80 Gb/s in USB4
+    v2 by adopting three-level <strong>PAM3</strong> — buying throughput with less SNR penalty
+    than PAM4 while still needing real equalisation over a consumer cable. SAS reached
+    22.5 Gb/s; InfiniBand went 25 Gb/s NRZ at EDR to 50 and 100 Gb/s PAM4 at HDR and NDR;
+    DisplayPort and HDMI carry comparable rates over cables with no ground reference to speak
+    of.</p>
+
+    <p>At the far end sits <strong>UCIe</strong>, the die-to-die interface standardised from
+    2022: a couple of millimetres of silicon interposer instead of tens of inches of laminate.
+    At that reach the loss is negligible, the equalisation is nearly nothing, and the problem
+    becomes parallelism and power per bit. That is the direction all of these are being pushed
+    — as the rate climbs, the reach equalisation can rescue falls, and the answer is either to
+    shorten the copper or to stop using it.</p>
+</section>
+
 <section class="slide" id="slide-03">
     <div class="slide-number">03</div>
     <h2>The Channel, Characterised</h2>
@@ -256,6 +313,61 @@
         crosstalk from the neighbouring lanes are aggregated into one figure of merit, the
         integrated crosstalk noise, and it enters the budget on slide 09 as 3.0 mV rms. On this
         channel it turns out to be the largest single term.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-03b">
+    <div class="slide-number">03b</div>
+    <h2>Laminates: Dk, Df and the Copper on Top</h2>
+    <p>A dielectric constant of 3.7 and a loss tangent of 0.0079 are not arbitrary numbers —
+    they identify a class of material. Dielectric loss is, to a good approximation,</p>
+    <p>$$\alpha_d \approx 2.3\, f\,\sqrt{\text{Dk}}\ \text{Df} \quad \text{dB per inch},
+       \qquad f \ \text{in GHz},$$</p>
+    <p>so <strong>Df sets the slope of the channel directly</strong> while Dk sets the
+    propagation delay and, through it, how much copper a given reach costs you.</p>
+
+    <table>
+        <thead><tr><th>Laminate</th><th>Dk</th><th>Df</th><th>Dielectric loss at 14 GHz</th><th>Typically used for</th></tr></thead>
+        <tbody>
+            <tr><td>Standard FR-4</td><td>≈4.3</td><td>≈0.022</td><td>1.47 dB/in</td><td>Up to a few Gb/s — PCIe 1.0/2.0, USB 3.0, XAUI</td></tr>
+            <tr><td>Isola FR408HR</td><td>3.65</td><td>0.0092</td><td>0.57 dB/in</td><td>8–10 Gb/s — PCIe 3.0, 10GBASE-KR</td></tr>
+            <tr><td><em>This deck's channel</em></td><td>3.70</td><td>0.0079</td><td>0.49 dB/in</td><td>Mid-loss; fine at 10 Gb/s, marginal at 28</td></tr>
+            <tr><td>Isola I-Speed</td><td>3.53</td><td>0.0060</td><td>0.36 dB/in</td><td>16–28 Gb/s — PCIe 4.0/5.0, CEI-28G</td></tr>
+            <tr><td>Panasonic Megtron 6</td><td>3.55</td><td>0.0045</td><td>0.27 dB/in</td><td>25–28 Gb/s backplanes; the low-loss remedy of slide 10</td></tr>
+            <tr><td>Rogers RO4350B</td><td>3.48</td><td>0.0037</td><td>0.22 dB/in</td><td>RF and mixed-signal boards where Dk stability matters most</td></tr>
+            <tr><td>Isola Tachyon 100G</td><td>3.02</td><td>0.0021</td><td>0.12 dB/in</td><td>56 Gb/s PAM4 and above — CEI-56G, PCIe 6.0</td></tr>
+            <tr><td>Panasonic Megtron 7</td><td>3.35</td><td>0.0020</td><td>0.12 dB/in</td><td>112 Gb/s per lane — 802.3ck, CEI-112G</td></tr>
+        </tbody>
+    </table>
+
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel y">
+            <h4>Copper roughness</h4>
+            <p>Foil is deliberately roughened so it sticks to the resin, and at microwave
+            frequencies the current follows that surface rather than cutting across it.
+            Standard foil (5–7 µm profile) can add half again to the smooth-conductor loss at
+            14 GHz; reverse-treated brings it down, VLP further, hyper-VLP further still.
+            <strong>A board on excellent resin with ordinary foil can lose to one on worse
+            resin with better copper.</strong></p>
+        </div>
+        <div class="diagram-panel r">
+            <h4>Glass weave</h4>
+            <p>Resin reinforced with woven glass — and glass and resin differ in Dk, roughly 6
+            against 3. A pair with one conductor over the bundles and the other over resin sees
+            two propagation velocities: intra-pair skew, hence mode conversion (companion deck,
+            slide 17). It accumulates with length, which is why long pairs are routed at a
+            small angle to the weave or on spread-glass styles such as 1078 and 3313.</p>
+        </div>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">How the generations map onto materials</div>
+        <p>Up to a few Gb/s, ordinary FR-4 and ordinary foil. At 8–10 Gb/s, improved FR-4 with
+        reverse-treated foil. At 16–28 Gb/s, a genuine low-loss laminate, VLP copper and spread
+        glass. At 56 and 112 Gb/s per lane, ultra-low-loss resin with hyper-VLP foil —
+        <em>and</em> a much shorter channel, because at those rates no material saves a
+        backplane. Materials bought perhaps 15 dB across twenty years, while the loss at
+        Nyquist of a fixed length of copper roughly tripled over the same period.</p>
     </div>
 </section>
 
@@ -356,10 +468,31 @@
         <tbody>
             <tr><td><strong>CTLE</strong><br>analogue, in the front end</td><td>Broadband slope, very cheaply</td><td>Anything with structure — reflections, isolated echoes</td><td>Cursor amplitude. It attenuates low frequencies rather than amplifying high ones</td></tr>
             <tr><td><strong>Transmit FFE</strong><br>FIR before the channel</td><td>Pre-cursor and near post-cursor ISI, <em>before</em> crosstalk is added</td><td>Anything it cannot see; it has no knowledge of the receiver's noise</td><td>Transmit swing, through the peak-power constraint $\sum|c_i| \le 1$</td></tr>
-            <tr><td><strong>Receive FFE</strong><br>FIR after the channel</td><td>Pre-cursor ISI and long tails, with many taps available</td><td>Nothing in principle — but every tap costs noise</td><td>Noise enhancement: 0.75 dB for the nine-tap MMSE design here</td></tr>
-            <tr><td><strong>DFE</strong><br>feedback on decisions</td><td>Post-cursor ISI <em>exactly</em>, with no noise penalty at all</td><td>Pre-cursor ISI, ever. It acts only on symbols already decided</td><td>Error propagation, and a hard timing path on the first tap</td></tr>
+            <tr><td><strong>Receive FFE</strong><br>FIR after the channel</td><td>Pre-cursor ISI and long tails, with many taps available — <em>and</em> it collects signal energy the channel scattered</td><td>Nothing in principle, but it cannot beat the matched-filter bound</td><td>Noise enhancement — the <em>gap</em> between coherent signal gain and incoherent noise gain: 0.75 dB here</td></tr>
+            <tr><td><strong>DFE</strong><br>feedback on decisions</td><td>Post-cursor ISI <em>exactly</em>, with no noise penalty at all — the decision is noiseless by construction</td><td>Pre-cursor ISI, ever. It acts only on symbols already decided</td><td>Error propagation, and a hard timing path on the first tap</td></tr>
         </tbody>
     </table>
+
+    <div class="callout">
+        <div class="callout-label">A linear equaliser does two things, not one</div>
+        <p>It is tempting — and wrong — to call a receive FFE a device that removes
+        interference at the cost of amplifying noise. When it forms a weighted sum of several
+        successive samples, the <strong>signal</strong> contributions add <em>coherently</em>:
+        the pre- and post-cursor samples are not noise, they are the same symbol arriving at
+        the wrong time, so lining them up adds their amplitudes directly. The
+        <strong>noise</strong>, uncorrelated sample to sample, adds only in root-sum-square.
+        Combine $k$ comparable samples and signal grows as $k$ while noise grows as
+        $\sqrt{k}$.</p>
+        <p style="margin-top:.6rem">That is the matched-filter mechanism, and it has the
+        matched-filter limit: $\mathrm{SNR} \le 2E/N_0$, set by the total energy in the pulse.
+        A linear equaliser cannot beat that bound and usually falls short, because it must also
+        drive the interference to zero and on a channel with deep nulls those two objectives
+        conflict. <strong>The shortfall is what "noise enhancement" means.</strong> The 9-tap
+        MMSE design here has a tap norm of about 34 — alarming if it were a penalty — but the
+        same taps raise the cursor by a comparable factor. The net cost is the ratio:
+        <strong>0.75 dB</strong>. Quoting the tap norm alone would overstate it by more than
+        twenty decibels.</p>
+    </div>
 
     <div class="callout">
         <div class="callout-label">Why the transmitter handles pre-cursors specifically</div>
@@ -369,6 +502,13 @@
         swing. Splitting the work so the transmitter handles pre-cursors and the feedback path
         handles post-cursors is not arbitrary: it puts each impairment where the cheapest
         remedy is.</p>
+        <p style="margin-top:.6rem">This is why the classical optimum has the structure it
+        does. Forney's decomposition of the maximum-likelihood receiver puts a <em>whitened
+        matched filter</em> at the front — the energy collection above — and follows it with a
+        detector for the remaining causal interference. The MMSE decision-feedback equaliser is
+        its practical descendant, and it beats the best purely linear equaliser on every lossy
+        channel. What stops it reaching the matched-filter bound in practice is error
+        propagation, not the mathematics.</p>
     </div>
 </section>
 
@@ -432,44 +572,87 @@
 
 <section class="slide" id="slide-08">
     <div class="slide-number">08</div>
-    <h2>The Worked Design, Stage by Stage</h2>
-    <p>Putting the blocks in series and tracking the pulse response through them gives the
-    table below. The cursor falls <em>monotonically</em>, which is the part that surprises
-    people new to this: equalisation is not about making the signal bigger, but about making
-    the interference smaller faster than the signal shrinks.</p>
+    <h2>The Worked Design, and What Actually Falls</h2>
+    <p>Tracking the pulse response through the chain, set out twice on purpose. The left group
+    is in millivolts at the receiver input, which is where a budget has to be written; the
+    right group normalises each stage to its own cursor, which is where the shape is visible
+    without the scaling getting in the way.</p>
 
     <table>
-        <thead><tr><th>Stage</th><th>Cursor</th><th>Σ|ISI|</th><th>Worst-case eye</th><th>Verdict</th></tr></thead>
+        <thead><tr><th>Stage</th><th>Cursor</th><th>ISI (rms)</th><th>Non-ISI noise</th><th>ISI ÷ cursor</th><th>Eye ÷ cursor</th></tr></thead>
         <tbody>
-            <tr><td>Channel only</td><td>0.199</td><td>0.636</td><td>−0.87</td><td>Shut, and inverted for some patterns</td></tr>
-            <tr><td>+ CTLE at −12 dB</td><td>0.070</td><td>0.139</td><td>−0.14</td><td>Still shut</td></tr>
-            <tr><td>+ transmit FFE</td><td>0.032</td><td>0.036</td><td>−0.007</td><td>On the edge</td></tr>
-            <tr><td>+ DFE, five taps</td><td>1.000 <span style="opacity:.6">(normalised)</span></td><td>0.349</td><td>1.30</td><td>Open, but not by much</td></tr>
+            <tr><td>Channel only</td><td>79.49 mV</td><td>88.18 mV</td><td>3.50 mV</td><td>3.199</td><td>-4.397</td></tr>
+            <tr><td>+ CTLE</td><td>27.85 mV</td><td>21.33 mV</td><td>1.84 mV</td><td>1.995</td><td>-1.989</td></tr>
+            <tr><td>+ transmit FFE</td><td>12.94 mV</td><td>7.34 mV</td><td>1.84 mV</td><td>1.114</td><td>-0.228</td></tr>
+            <tr><td>+ DFE, five taps</td><td>12.94 mV</td><td>1.12 mV</td><td>1.84 mV</td><td>0.349</td><td>1.303</td></tr>
         </tbody>
     </table>
+
+    <h3>Which blocks must shrink the cursor, and which need not</h3>
+    <table>
+        <thead><tr><th>Block</th><th>Scales the cursor?</th><th>Why</th></tr></thead>
+        <tbody>
+            <tr><td><strong>CTLE</strong></td><td>Yes, and it must</td><td>A passive-shaped analogue filter with fixed headroom. Its high-frequency gain is about unity, so the only way to present a rising response is to attenuate everything below. <strong>But it attenuates the incoming noise and crosstalk by nearly the same factor</strong> (−5.6 dB over the noise bandwidth), so most of that cursor reduction is <em>not</em> an SNR loss</td></tr>
+            <tr><td><strong>Transmit FFE</strong></td><td>Yes, and it must</td><td>Hard peak-power limit: $\sum|c_i| \le 1$, so every unit of correction is subtracted from the main tap. <strong>The noise it fights is added downstream and does not scale with it</strong> — so this attenuation <em>is</em> a real SNR loss, the most expensive decibels in the chain</td></tr>
+            <tr><td><strong>Receive FFE</strong></td><td>No, not meaningfully</td><td>Its gain is arbitrary: a VGA and the slicer threshold follow it and scale together. Only the ratio of signal gain to noise gain matters (slide 06), which is why normalising its output to unity is fair</td></tr>
+            <tr><td><strong>DFE</strong></td><td>No</td><td>It subtracts rather than scales. Cursor untouched, noise untouched — the thing subtracted is a decision, not a waveform</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout">
+        <div class="callout-label">What actually falls monotonically</div>
+        <p>It is often said that equalisation makes the interference shrink faster than the
+        signal does. That is a statement about the cursor, and the cursor is not well defined —
+        it depends where you put the gain, and sliding the AGC makes it whatever you like. The
+        invariant statement is about <em>ratios</em>: <strong>every linear block trades
+        signal-to-noise ratio for signal-to-ISI ratio.</strong> Measured against the noise that
+        is <em>not</em> correlated with the data — thermal, crosstalk, quantisation, jitter
+        converted through the slope — the signal falls monotonically, from 27.1 dB at the channel output to 16.9 dB after the transmit FFE, and no linear operation can reverse that. What is bought in
+        exchange is the other ratio: signal to residual ISI climbs from -0.9 dB to 21.3 dB. The link works
+        when the two together are good enough — and both matter only over the bandwidth the
+        signal actually occupies.</p>
+    </div>
+
+    <div class="canvas-wrap">
+        <canvas id="st-plot" width="780" height="300"></canvas>
+        <div class="legend">
+            <span><i style="background:#f472b6"></i>signal to non-ISI noise — can only fall</span>
+            <span><i style="background:#34d399"></i>signal to residual ISI — what you buy</span>
+            <span><i style="background:#22d3ee"></i>the two combined, 20 log Q</span>
+        </div>
+    </div>
+
+    <p>The DFE is the only block whose signal-to-noise line is flat: it improves the ISI ratio by
+    16.3 dB at <em>no</em> cost in
+    signal-to-noise whatsoever. Every other block pays. And the transmit FFE, judged alone,
+    looks like a poor bargain — it gives up 6.7 dB of SNR to buy only 2.6 dB of
+    signal-to-ISI. Run the chain without it and five feedback taps take Q only from 1.30 to
+    <strong>1.69</strong>, because what remains after the CTLE is dominated by pre-cursors the
+    feedback path cannot reach. The transmit FFE is not there to open the eye by itself; it is
+    there to clear the pre-cursors so that the block which <em>is</em> free can do its work.
+    Together they take Q from 1.30 to <strong>6.01</strong>.</p>
 
     <div class="diagram-grid cols-2">
         <div class="diagram-panel accent-border">
             <h4>Transmit FFE taps</h4>
-            <p>$[\,0.040,\ -0.340,\ 0.620\,]$ — two pre-taps, zero-forcing the first two
-            pre-cursors, normalised so $\sum|c_i| = 1$. The main tap at 0.62 is the
-            de-emphasis penalty made visible.</p>
+            <p>$[\,0.040,\ -0.340,\ 0.620\,]$ — two pre-taps zero-forcing the first two
+            pre-cursors, normalised so $\sum|c_i| = 1$. The main tap at 0.62 <em>is</em> the
+            de-emphasis penalty, made visible.</p>
         </div>
         <div class="diagram-panel r">
             <h4>DFE taps</h4>
-            <p>$[\,0.301,\ -0.368,\ -0.195,\ -0.032,\ 0.005\,]$. A second tap of −0.37 is large
-            enough that error propagation is a real risk, which is one reason FEC and decision
+            <p>$[\,0.301,\ -0.368,\ -0.195,\ -0.032,\ 0.005\,]$. A second tap of −0.37 is
+            large enough that error propagation is a real risk — one reason FEC and decision
             feedback are usually specified together.</p>
         </div>
     </div>
 
     <div class="callout">
         <div class="callout-label">The first DFE tap is a timing problem, not just a filter tap</div>
-        <p>The feedback path must settle within one unit interval — 35.7 ps here — from slicer
+        <p>The feedback path must settle within one unit interval — 35.7 ps — from slicer
         output back to slicer input. That puts the first tap on the critical path of the whole
-        receiver, which is why it is usually <em>unrolled</em>: both possible answers are
-        computed speculatively in parallel and the decision selects between them after the
-        fact.</p>
+        receiver, which is why it is usually <em>unrolled</em>: both possible answers computed
+        speculatively in parallel, with the decision selecting between them after the fact.</p>
     </div>
 </section>
 
@@ -495,6 +678,28 @@
     <p>Signal 12.9 mV over noise 2.15 mV gives $Q = 6.01$, a bit error rate near
     $10^{-9}$. The conventional target for an uncorrected link is $10^{-12}$, which needs
     $Q = 7.03$. <strong>This link is 1.36 dB short.</strong></p>
+
+    <div class="callout">
+        <div class="callout-label">A note on the letter Q, because it is badly overloaded</div>
+        <p>The $Q$ used here is the <strong>Q-factor of digital and optical
+        communications</strong>, and it has nothing to do with the quality factor of a
+        resonator. It is named after the Gaussian tail function
+        $Q(x) = \int_x^\infty \phi(u)\,du$ and defined as</p>
+        <p>$$Q = \frac{\mu_1 - \mu_0}{\sigma_1 + \sigma_0},$$</p>
+        <p>which for a symmetric binary signal is simply half the eye opening over the rms
+        noise. Then $\mathrm{BER} = \tfrac12\,\mathrm{erfc}(Q/\sqrt2)$, so $Q = 7.03$ is
+        $10^{-12}$ and $Q = 6$ is about $10^{-9}$. Optical work quotes it in dB as
+        $20\log Q$, which invites a further confusion with electrical SNR in power terms.</p>
+        <p style="margin-top:.6rem">The collision genuinely bites anyone working across
+        disciplines — in an atomic clock the fractional frequency stability depends on the
+        resonator $Q$ <em>and</em> on SNR, and both appear in the same expression, so reading
+        "Q" here as the resonator quantity gives a sentence that is wrong in a
+        plausible-looking way. Where the ambiguity matters, quote the error rate directly, or
+        use the IEEE 802.3 <strong>channel operating margin</strong>, which expresses the same
+        judgement in dB and is defined in the standard rather than by convention. This deck
+        keeps $Q$ because every SerDes datasheet and optical link budget uses it — but it means
+        the communications Q-factor throughout, never the resonator one.</p>
+    </div>
 
     <div class="callout">
         <div class="callout-label">Read the budget before choosing a fix</div>
@@ -685,7 +890,7 @@
             <tr><td>Noise enhancement of a 9-tap Rx FFE</td><td>0.75 dB</td><td>The price of each linear tap — compare a DFE tap, which is free</td></tr>
             <tr><td>Cursor at the slicer</td><td>12.9 mV</td><td>Out of 800 mV launched</td></tr>
             <tr><td>Total noise</td><td>2.15 mV rms</td><td>Dominated by crosstalk, not by residual ISI</td></tr>
-            <tr><td>Q and margin</td><td>6.01, −1.36 dB</td><td>Short of $10^{-12}$; slide 10 prices what recovers it</td></tr>
+            <tr><td>Q-factor and margin</td><td>6.01, −1.36 dB</td><td>Communications Q, not resonator Q. Short of $10^{-12}$; slide 10 prices what recovers it</td></tr>
             <tr><td>PAM4 penalty</td><td>9.54 dB</td><td>Structural, not recoverable by equalisation</td></tr>
         </tbody>
     </table>
@@ -827,6 +1032,57 @@ const SD = {"-1":{"taps":[0.012104,0.016845,0.025681,0.045867,0.105504,0.176039,
         sL.value = b.dataset.vs; update();
     }));
     update();
+})();
+
+/* ---------- 08 : what actually falls monotonically ---------------------- */
+(function () {
+    const { ctx, w, h } = hidpi('st-plot');
+    const ST = [{"name": "Channel only", "snr_n": 27.12460782368447, "snr_i": -0.9011557516665232, "q": 0.9007418930700496}, {"name": "+ CTLE", "snr_n": 23.598906577400264, "snr_i": 2.31640593619626, "q": 1.3007985613243964}, {"name": "+ transmit FFE", "snr_n": 16.945027823159727, "snr_i": 4.932857374996779, "q": 1.7115624493934634}, {"name": "+ DFE, five taps", "snr_n": 16.945027823159727, "snr_i": 21.28027085650212, "q": 6.01345196771708}];
+    const names = ['channel\nonly', '+ CTLE', '+ transmit\nFFE', '+ DFE\n(5 taps)'];
+    clear(ctx, w, h);
+    const padL = 48, padR = 34, padT = 26, padB = 46;
+    const YMIN = -7, YMAX = 35;
+    const X = i => padL + i / (ST.length - 1) * (w - padL - padR);
+    const Y = v => h - padB - (v - YMIN) / (YMAX - YMIN) * (h - padT - padB);
+    ctx.strokeStyle = C.grid; ctx.lineWidth = 1;
+    for (let v = -5; v <= YMAX; v += 10) {
+        ctx.beginPath(); ctx.moveTo(padL, Y(v)); ctx.lineTo(w - padR, Y(v)); ctx.stroke();
+        label(ctx, v + '', padL - 6, Y(v) + 3, C.dim, 9, 'right');
+    }
+    const qtar = 20 * Math.log10(7.034);
+    ctx.strokeStyle = C.amber; ctx.lineWidth = 1.1; dashed(ctx, true);
+    ctx.beginPath(); ctx.moveTo(padL, Y(qtar)); ctx.lineTo(w - padR, Y(qtar)); ctx.stroke();
+    dashed(ctx, false);
+    label(ctx, 'Q needed for 1e−12', padL + 6, Y(qtar) - 5, C.amber, 8.5);
+
+    function series(key, col, dash, lab, dy) {
+        ctx.strokeStyle = col; ctx.lineWidth = 2; dashed(ctx, dash);
+        ctx.beginPath();
+        ST.forEach((st, i) => {
+            const v = key === 'q' ? 20 * Math.log10(st.q) : st[key];
+            if (i === 0) ctx.moveTo(X(i), Y(v)); else ctx.lineTo(X(i), Y(v));
+        });
+        ctx.stroke(); dashed(ctx, false);
+        ST.forEach((st, i) => {
+            const v = key === 'q' ? 20 * Math.log10(st.q) : st[key];
+            ctx.fillStyle = col;
+            ctx.beginPath(); ctx.arc(X(i), Y(v), 4, 0, 2 * Math.PI); ctx.fill();
+            if (dy) {
+                const last = i === ST.length - 1;
+                label(ctx, v.toFixed(1), X(i) + (last ? 8 : 0),
+                      Y(v) + (last ? -dy : dy), col, 8.5, last ? 'left' : 'center');
+            }
+        });
+    }
+    series('snr_n', C.pink, false, 'non-ISI', -9);
+    series('snr_i', C.teal, false, 'ISI', 15);
+    series('q', C.cyan, true, 'Q', 0);
+
+    names.forEach((nm, i) => {
+        nm.split('\n').forEach((ln, k) =>
+            label(ctx, ln, X(i), h - 22 + k * 11, C.dim, 8.5, 'center'));
+    });
+    label(ctx, 'dB', padL - 6, padT - 8, C.text, 10, 'right');
 })();
 
 /* ---------- 07 : the whole equaliser chain ----------------------------- */
