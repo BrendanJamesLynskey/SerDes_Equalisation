@@ -198,10 +198,80 @@
 <section class="slide" id="slide-01b">
     <div class="slide-number">01b</div>
     <h2>The Names, Decoded</h2>
-    <p>The names in the next few slides come from <strong>two different bodies producing two
-    different kinds of document</strong>, and the distinction is worth having before the
-    history starts. It is commonly assumed they are all flavours of Ethernet. Some are; the
-    most frequently cited ones are not.</p>
+    <p>The names in the next few slides come from <strong>three different bodies producing
+    three different kinds of document</strong>, and the distinction is worth having before the
+    history starts. It is commonly assumed they are all flavours of Ethernet. Some are; several
+    of the most frequently cited are not. The sensible place to begin is the one every engineer
+    has physically handled.</p>
+
+    <h3>PCI Express — the one everybody has touched</h3>
+    <p>Published by PCI-SIG, an industry consortium, and a <em>complete interconnect
+    specification</em> — electrical layer, link layer, transaction layer, configuration model
+    and mechanical form factors — rather than only a physical layer. Its naming is the simplest
+    of the three: a link is a <strong>generation</strong> and a <strong>width</strong>, so
+    "Gen4 ×16" is sixteen lanes at the Gen4 rate of 16 GT/s.</p>
+    <p>The rate is quoted in <strong>gigatransfers per second</strong> — the raw signalling
+    rate <em>before</em> coding overhead is removed, so always a little above the payload
+    throughput. Each lane is full duplex and carries a differential pair in each direction,
+    which means a ×16 slot is <strong>thirty-two pairs, sixty-four conductors</strong>, all of
+    which must escape the processor package and cross the board together.</p>
+
+    <table>
+        <thead><tr><th>Generation</th><th>Rate per lane</th><th>Coding</th><th>Payload, ×16 link</th><th>Nyquist</th></tr></thead>
+        <tbody>
+            <tr><td>1.0 (2003)</td><td>2.5 GT/s</td><td>8b/10b</td><td>4 GB/s each way</td><td>1.25 GHz</td></tr>
+            <tr><td>2.0 (2007)</td><td>5 GT/s</td><td>8b/10b</td><td>8 GB/s</td><td>2.5 GHz</td></tr>
+            <tr><td>3.0 (2010)</td><td>8 GT/s</td><td>128b/130b</td><td>≈15.8 GB/s</td><td>4 GHz</td></tr>
+            <tr><td>4.0 (2017)</td><td>16 GT/s</td><td>128b/130b</td><td>≈31.5 GB/s</td><td>8 GHz</td></tr>
+            <tr><td>5.0 (2019)</td><td>32 GT/s</td><td>128b/130b</td><td>≈63 GB/s</td><td>16 GHz</td></tr>
+            <tr><td><strong>6.0 (2022)</strong></td><td><strong>64 GT/s, PAM4</strong></td><td>FLIT + FEC</td><td>≈121 GB/s</td><td><strong>16 GHz</strong></td></tr>
+            <tr><td>7.0 (draft)</td><td>128 GT/s, PAM4</td><td>FLIT + FEC</td><td>≈242 GB/s</td><td>32 GHz</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout">
+        <div class="callout-label">The row worth staring at</div>
+        <p>Generation 6 <strong>doubles the throughput of generation 5 while leaving Nyquist
+        exactly where it was</strong>, at 16 GHz, because it moves from two-level to four-level
+        signalling and so halves the symbol rate for a given bit rate. That is precisely the
+        trade slide 11 works through for Ethernet — same channel, twice the data, and a 9.5 dB
+        signal-to-noise penalty to pay for it. PCIe reached the same conclusion as Ethernet,
+        four years later and for the same reason: there was no more bandwidth to be had from
+        the copper.</p>
+    </div>
+
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel g">
+            <h4>Where you meet it</h4>
+            <p>A graphics or accelerator card in a ×16 slot; an <strong>NVMe SSD</strong>, which
+            is simply a PCIe device in an M.2, U.2 or EDSFF package rather than a storage
+            interface in its own right; a network adapter at ×8 or ×16; the processor-to-chipset
+            link; and since 2019 <strong>CXL</strong> memory and accelerators, which run their
+            own protocol over the PCIe electrical layer and inherit its channel problems
+            wholesale. Thunderbolt and USB4 tunnel PCIe too — which is how an external enclosure
+            can hold a graphics card.</p>
+        </div>
+        <div class="diagram-panel y">
+            <h4>A different channel shape</h4>
+            <p>Short — a few inches of motherboard to a slot, or a riser card and then a slot —
+            but unusually <strong>rich in connectors</strong> and unusually strict about
+            interoperability. A Gen5 slot must work with a Gen1 card from any vendor, which is
+            why equalisation is negotiated from a published preset table rather than adapted
+            freely, and why much of the PCIe budget goes on reflections and crosstalk rather
+            than the loss that dominates a backplane.</p>
+        </div>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">Retimer versus redriver</div>
+        <p>When the budget runs out, the standard's answer is a <strong>retimer</strong>: a
+        device that fully recovers clock and data and retransmits them, resetting the loss
+        budget at the cost of latency and power. Distinguish it from a <strong>redriver</strong>,
+        an analogue amplifier and equaliser with no clock recovery. A redriver
+        <em>improves</em> a channel; a retimer <em>replaces it with two shorter ones</em>.</p>
+    </div>
+
+    <p>With that in hand, the two families of names this deck leans on more heavily.</p>
 
     <h3>IEEE 802.3 — Ethernet itself</h3>
     <p>It specifies <em>complete physical layers</em>: coding, electrical interface, medium and
@@ -259,17 +329,14 @@
     </table>
 
     <div class="callout">
-        <div class="callout-label">How the two fit together, and two more names</div>
+        <div class="callout-label">How the two fit together, and one more name</div>
         <p>IEEE defines the network and its ports; OIF defines the electrical interfaces that
         connect chips to one another and to optical modules. They are developed in step —
         CEI-112G and IEEE 802.3ck arrived together and are aligned on rate and channel — so a
         lane can legitimately be described either way, depending which layer you mean.</p>
-        <p style="margin-top:.6rem">Two others recur below. <strong>KP4 FEC</strong> is the
+        <p style="margin-top:.6rem">One other recurs below: <strong>KP4 FEC</strong> is the
         Reed–Solomon code RS(544,514), named after the 100GBASE-KP4 physical layer it was first
-        specified for and now used far beyond it. And PCI Express quotes rates in
-        <strong>GT/s</strong>, gigatransfers per second — the raw signalling rate <em>before</em>
-        coding overhead: PCIe 3.0 at 8 GT/s with 128b/130b delivers about 7.88 Gb/s of payload
-        per lane.</p>
+        specified for and now used far beyond it.</p>
     </div>
 </section>
 

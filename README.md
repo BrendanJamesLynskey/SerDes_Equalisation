@@ -22,7 +22,7 @@ decision-feedback taps are designed against that pulse response.
 ## What's inside
 
 - What closes an eye — loss, reflection, crosstalk, jitter, and which block fixes each
-- The names decoded first: IEEE 802.3 against OIF CEI, how 10GBASE-KR parses, why XAUI is a chip-to-chip interface rather than a network port, and what XSR/VSR/MR/LR mean
+- The names decoded first, starting with PCI Express — generations, GT/s versus payload, ×16 as thirty-two pairs, the systems you actually meet it in (GPUs, NVMe, CXL, Thunderbolt), and retimer versus redriver. Then IEEE 802.3 against OIF CEI: how 10GBASE-KR parses, why XAUI is a chip-to-chip interface rather than a network port, and what XSR/VSR/MR/LR mean
 - A short history: XAUI → 10GBASE-KR → CEI-28G → PAM4 and mandatory FEC → ADC-DSP receivers → 224G
 - The systems behind the standards — why the parallel bus ran out, why chassis backplanes forced adaptive equalisation, how the data centre killed the backplane, and why accelerator racks are running out of copper
 - The same problem on every other bus — PCIe 1.0 through 7.0 and its negotiated preset table, USB4's PAM3, SAS, InfiniBand, and UCIe at the far end of the reach axis
@@ -44,7 +44,7 @@ decision-feedback taps are designed against that pulse response.
 ## Long-form companion
 
 The same material as a written report:
-[SerDes_Equalisation.pdf](SerDes_Equalisation.pdf) (23 pp).
+[SerDes_Equalisation.pdf](SerDes_Equalisation.pdf) (24 pp).
 
 ## Companion decks
 
