@@ -132,9 +132,11 @@
     <ul class="contents-list">
         <li><a href="#slide-01">What closes an eye</a></li>
         <li><a href="#slide-02">A short history</a></li>
+        <li><a href="#slide-02a">The systems that needed them</a></li>
         <li><a href="#slide-02b">The same problem on every other bus</a></li>
         <li><a href="#slide-03">The channel, characterised</a></li>
         <li><a href="#slide-03b">Laminates: Dk, Df and copper roughness</a></li>
+        <li><a href="#slide-03c">What the board has to do, versus an RF board</a></li>
         <li><a href="#slide-04">Interactive: the via stub</a></li>
         <li><a href="#slide-05">From S-parameters to a pulse response</a></li>
         <li><a href="#slide-06">The equaliser blocks, and what each costs</a></li>
@@ -221,6 +223,86 @@
         with better copper. The structure of the problem has not changed since 2007: a channel
         you cannot alter, a pulse response that describes it completely, filters whose taps
         solve a quadratic minimisation, and a budget that decides whether it works.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-02a">
+    <div class="slide-number">02a</div>
+    <h2>The Systems That Needed Them</h2>
+    <p>Standards do not appear because someone wants a faster number. Each generation was
+    forced by a class of machine that had run out of road — and the shape of the channel
+    changed as much as the rate did.</p>
+
+    <h3>The parallel bus, and why it ran out</h3>
+    <p>Until the early 2000s almost everything inside a computer was a wide, slowly clocked,
+    multi-drop parallel bus: PCI at 33 then 66 MHz, PCI-X at 133, parallel ATA, parallel SCSI,
+    a front-side bus. The attraction was a common clock — every receiver samples on the same
+    edge. The problem is that the timing budget does not scale. Sixty-four lines must arrive
+    within a fraction of a clock period, so the <strong>skew</strong> between them (length
+    mismatch, crosstalk, clock jitter) must shrink with the clock while its physical causes do
+    not. And a multi-drop bus has a stub at every load, and every stub is a reflection.
+    Ultra-320 SCSI needed heroic measures; Ultra-640 was specified and essentially never
+    shipped.</p>
+    <p>The escape was to <strong>serialise</strong>: one differential pair instead of
+    sixty-four single-ended lines, clock embedded rather than distributed, point-to-point
+    rather than multi-drop. That trades pin count for rate and removes skew-between-bits and
+    load stubs in one move — at the cost of a clock recovery loop in every receiver, and of
+    putting the whole timing budget on one channel whose loss you now have to fight.</p>
+
+    <table>
+        <thead><tr><th>Era</th><th>Machines</th><th>The channel</th><th>What limited it</th></tr></thead>
+        <tbody>
+            <tr><td>to ~2003</td><td>PCI and PCI-X slots, parallel ATA and SCSI, front-side buses</td><td>Wide multi-drop parallel bus, common clock</td><td>Skew between bits and stub reflections — neither scales with the clock</td></tr>
+            <tr><td>2000–2005</td><td>PCIe 1.0, SATA, SAS, InfiniBand, XAUI in early routers</td><td>Short point-to-point differential pairs, ~6 dB</td><td>Connectors, pair routing discipline, a CDR per lane</td></tr>
+            <tr><td>2005–2012</td><td>ATCA shelves, core routers, blade servers</td><td>20–40 inches of backplane through two connectors</td><td>The same card must work in every slot → equalisation had to adapt. Then connector crosstalk</td></tr>
+            <tr><td>2012–2020</td><td>Fixed-config switches in Clos fabrics; NVMe and CXL servers</td><td>6–12 inches, package to front-panel cage</td><td>Rate rising faster than reach falling; package and board escape for hundreds of lanes</td></tr>
+            <tr><td>2020–</td><td>Accelerator clusters, 400G/800G optics</td><td>A handful of inches, or no PCB at all</td><td>Reach, power per bit, and the cost of converting to light</td></tr>
+        </tbody>
+    </table>
+
+    <h3>The chassis era — where adaptive equalisation was forced</h3>
+    <p>ATCA telecom shelves, core routers such as the Cisco CRS-1 and Juniper's T-series, blade
+    servers from IBM and HP: all share a passive backplane with line cards plugged into it, and
+    that architecture creates a problem fixed settings cannot solve. <strong>The same line card
+    must work in every slot.</strong> Slot 1 might be six inches from the switch card and slot
+    16 thirty-six inches, through two connectors either way, and no factory setting is right
+    for both. The receiver has to <em>discover</em> the channel it has been given — which is
+    exactly what 10GBASE-KR's training protocol provides.</p>
+    <p>A second constraint made equalisation more valuable still. A chassis is a ten-year
+    investment and its backplane is passive and unserviceable, while the line cards are
+    replaced every few years — so a backplane etched in 2005 had to carry the SerDes of 2012.
+    That is precisely why the money went into equalisation rather than into new copper. The
+    limiting impairment turned out to be <em>crosstalk</em>, because a backplane connector
+    carries dozens of pairs through one shroud; that drove a generation of connector redesign,
+    and eventually architectures that deleted the midplane by plugging line cards directly into
+    fabric cards at right angles.</p>
+
+    <h3>The data centre, and then the reach crisis</h3>
+    <p>Hyperscale operators replaced the big chassis router with many small fixed-configuration
+    switches in a Clos fabric. Thirty inches of backplane became six to twelve inches from
+    package to front-panel cage — which should have made life easier and did not, because the
+    rate went 10 → 25 → 50 Gb/s per lane over the same period. The bottleneck moved: switch
+    radix grew roughly sixteen-fold in a decade, so getting hundreds of lanes <em>out of the
+    package and across the board</em> became as hard as getting them down the channel.
+    Meanwhile PCIe became a storage interface through NVMe and a memory interface through CXL,
+    pushing its channel budgets into genuine difficulty and making retimers ordinary.</p>
+    <p>At 112 Gb/s per lane the reach an equaliser can rescue has fallen to a handful of inches
+    of ordinary laminate, and four responses are visible at once: <strong>cabled
+    backplanes</strong> routing twinax from the package over the board to the front panel;
+    <strong>co-packaged optics</strong>; <strong>linear-drive optics</strong> deleting the
+    module's retimer; and <strong>chiplet interfaces</strong> keeping the fastest links inside
+    the package. The largest accelerator racks now carry thousands of copper cables in a
+    scale-up domain precisely because optics at that density would cost more power.</p>
+
+    <div class="callout">
+        <div class="callout-label">The pattern worth taking away</div>
+        <p>Every era solved its channel problem by moving the difficulty somewhere cheaper. The
+        parallel bus moved it from pin count to rate. The backplane era moved it from copper to
+        silicon, because silicon got cheaper every year and a ten-year chassis did not. The
+        data-centre era moved it from the chassis to the fabric topology, replacing one
+        enormous channel with many short ones. The current era is moving it off the board
+        entirely, into cable and into light. <strong>Equalisation is what made each of those
+        moves survivable while the next one was being worked out.</strong></p>
     </div>
 </section>
 
@@ -409,6 +491,73 @@
         backplane. Materials bought perhaps 15 dB across twenty years, while the loss at
         Nyquist of a fixed length of copper roughly tripled over the same period.</p>
     </div>
+</section>
+
+<section class="slide" id="slide-03c">
+    <div class="slide-number">03c</div>
+    <h2>What the Board Has to Do, Versus an RF Board</h2>
+    <p>The verdict on RF laminates is easier to see once the rest of the board is on the table,
+    because almost nothing about a high-speed digital stackup is chosen for signal integrity
+    alone. It is a compromise between routing density, power delivery, mechanical rigidity and
+    manufacturing yield — and the SI engineer arrives late and negotiates.</p>
+
+    <div class="diagram-grid cols-3">
+        <div class="diagram-panel accent-border">
+            <h4>Layer count is set by escape routing</h4>
+            <p>A modern switch or accelerator package has thousands of balls on a 1 mm or finer
+            pitch, several hundred pairs of them high-speed. Every pair must thread between the
+            antipads of the balls around it, and only one or two traces fit in that channel. The
+            only way to escape hundreds of pairs is a few per layer across <strong>20 to 40
+            layers</strong> — decided by the ball map, not the dielectric.</p>
+        </div>
+        <div class="diagram-panel y">
+            <h4>Trace width is set by the same constraint, not by loss</h4>
+            <p>Conductor loss falls as the trace widens, so an SI engineer left alone would use
+            very wide traces. The escape channel forbids it: <strong>4 to 6 mil</strong> is
+            whatever fits between antipads, where the loss calculation would prefer 8 to 12.
+            This is the sharpest difference from RF, where a line can be as wide as the
+            substrate allows because there are dozens of nets, not thousands.</p>
+        </div>
+        <div class="diagram-panel r">
+            <h4>Thickness is close to immovable</h4>
+            <p>It follows from layer count, then is pinned from three directions: <strong>press-fit
+            connectors</strong> are qualified for a thickness range and the compliant pin will
+            not seat outside it; a large card must be <strong>stiff</strong> enough not to sag
+            or flex on insertion; and the <strong>plating aspect ratio</strong> (thickness ÷
+            drill) has a limit, beyond which you need a bigger drill — which enlarges the
+            antipad, which takes away the routing channel you were trying to create.</p>
+        </div>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">Which is why back-drilling exists at all</div>
+        <p>A thick board means long via barrels, and a signal entering at layer 3 and leaving at
+        layer 6 leaves most of the barrel dangling as a stub. <strong>In RF you would simply use
+        a thin substrate and the problem would not arise.</strong> Here the thickness is not
+        available as a design variable, so the industry invented a second drilling operation to
+        remove the unused copper afterwards — at extra cost, with its own tolerance, leaving 6
+        to 10 mil of residual stub. Slide 04 shows what happens when it is skipped.</p>
+    </div>
+
+    <table>
+        <thead><tr><th></th><th>High-speed digital board</th><th>RF board</th></tr></thead>
+        <tbody>
+            <tr><td>Layer count</td><td>20–40, occasionally more; set by package escape</td><td>2–8; often a single ground plane</td></tr>
+            <tr><td>Thickness</td><td>2.5–6 mm, fixed by layer count, connectors, stiffness, plating aspect ratio</td><td>0.25–1.5 mm, chosen freely to set line width and radiation</td></tr>
+            <tr><td>Trace width</td><td>4–6 mil, set by the escape channel between antipads</td><td>Tens of mils, set by impedance and loss</td></tr>
+            <tr><td>Nets</td><td>Thousands, all at one controlled impedance</td><td>Tens, individually tuned</td></tr>
+            <tr><td>Bandwidth</td><td>DC to beyond Nyquist, broadband</td><td>A band, often a narrow one</td></tr>
+            <tr><td>Vias</td><td>Tens of thousands; each an impairment to be back-drilled</td><td>Few; often a deliberate design element</td></tr>
+            <tr><td>What must be stable</td><td>Loss slope and impedance across a huge board and a long production run</td><td>Dk, tightly, over temperature and lot</td></tr>
+            <tr><td>Shares the stackup with</td><td>Dozens of power rails, plane splits, decoupling</td><td>Little else</td></tr>
+        </tbody>
+    </table>
+
+    <p class="note">Read down that table and the verdict on RO4350B becomes almost inevitable.
+    A material whose distinguishing virtue is tightly controlled Dk, supplied in thin
+    constructions for boards with a handful of layers, is answering a question the digital
+    designer never asks, in a form he cannot use, at a price that scales with an area he cannot
+    avoid.</p>
 </section>
 
 <section class="slide" id="slide-04">
