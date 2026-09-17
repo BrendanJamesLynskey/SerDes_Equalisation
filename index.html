@@ -131,6 +131,7 @@
     <h2>Topics We'll Cover</h2>
     <ul class="contents-list">
         <li><a href="#slide-01">What closes an eye</a></li>
+        <li><a href="#slide-01b">The names, decoded</a></li>
         <li><a href="#slide-02">A short history</a></li>
         <li><a href="#slide-02a">The systems that needed them</a></li>
         <li><a href="#slide-02b">The same problem on every other bus</a></li>
@@ -191,6 +192,84 @@
         That is why every rate increase for twenty years has been paid for with more
         equalisation rather than with better copper &mdash; and also why slide 10, where the
         board turns out to be the cheaper fix, is worth reading carefully.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-01b">
+    <div class="slide-number">01b</div>
+    <h2>The Names, Decoded</h2>
+    <p>The names in the next few slides come from <strong>two different bodies producing two
+    different kinds of document</strong>, and the distinction is worth having before the
+    history starts. It is commonly assumed they are all flavours of Ethernet. Some are; the
+    most frequently cited ones are not.</p>
+
+    <h3>IEEE 802.3 — Ethernet itself</h3>
+    <p>It specifies <em>complete physical layers</em>: coding, electrical interface, medium and
+    compliance tests as one package. The names are systematic once you know the grammar. In
+    <strong>10GBASE-KR</strong>: 10G is the rate, BASE means baseband rather than modulation
+    onto a carrier, K says the medium is a backplane, R says the coding is 64b/66b. A trailing
+    digit counts lanes.</p>
+
+    <table>
+        <thead><tr><th>Position</th><th>Letter</th><th>Means</th></tr></thead>
+        <tbody>
+            <tr><td>Medium</td><td>T / K / C</td><td>Twisted pair / backplane / twinax copper cable</td></tr>
+            <tr><td>Medium</td><td>S / L / E / F</td><td>Short-wavelength multimode fibre / long-wavelength single mode / extra-long / fibre generally</td></tr>
+            <tr><td>Coding</td><td>X / R</td><td>8b/10b (25% overhead) / 64b/66b (about 3%)</td></tr>
+            <tr><td>Lanes</td><td>trailing digit</td><td>Absent means one. <strong>100GBASE-KR4</strong> = 100 Gb/s over a backplane, 64b/66b, on four lanes of 25</td></tr>
+        </tbody>
+    </table>
+    <p class="note">Revisions arrive as lettered amendments — which is where 802.3ap (2007,
+    backplane), 802.3bj (2014, 100G and RS-FEC), 802.3ck (2022, 100G per lane) and 802.3dj
+    (in progress, 200G per lane) come from.</p>
+
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel r">
+            <h4>XAUI is the odd one out</h4>
+            <p>The term most often misread. It is <em>not</em> a physical layer over a medium —
+            it is a <strong>chip-to-chip interface</strong>, defined so a 10 Gigabit Ethernet
+            MAC's internal bus can cross a few inches of PCB to a separate PHY chip. The name is
+            "ten gigabit attachment unit interface": X is the Roman numeral, AUI a term
+            inherited from 1980s Ethernet. It carries 10 Gb/s of payload as four lanes of 3.125
+            gigabaud, the extra rate being 8b/10b overhead. XLAUI, CAUI and the later AUI
+            variants do the same job at 40, 100 and 400 Gb/s. <strong>"Ran XAUI" means chips
+            talking on a board, not a cable between machines.</strong></p>
+        </div>
+        <div class="diagram-panel accent-border">
+            <h4>OIF CEI is not Ethernet at all</h4>
+            <p>The Optical Internetworking Forum publishes <em>Implementation Agreements</em>
+            rather than standards, and its Common Electrical I/O series specifies the
+            <strong>electrical interface alone</strong> — signalling, channel, transmitter and
+            receiver compliance — with no reference to the protocol running over it. That is
+            the point of them. CEI-28G is the electrical layer a 28 Gb/s lane sits on whether it
+            carries Ethernet, Fibre Channel, InfiniBand or optical transport; it is reused by
+            all of them rather than belonging to any.</p>
+        </div>
+    </div>
+
+    <h3>CEI reach classes — the part that sets the channel loss</h3>
+    <table>
+        <thead><tr><th>Class</th><th>Stands for</th><th>Roughly</th><th>Typical use</th></tr></thead>
+        <tbody>
+            <tr><td><strong>XSR</strong></td><td>Extremely short reach</td><td>a few cm</td><td>Die to die, or chip to an optical engine in the same package</td></tr>
+            <tr><td><strong>VSR</strong></td><td>Very short reach</td><td>~10 cm</td><td>Chip to a front-panel pluggable module</td></tr>
+            <tr><td><strong>MR</strong></td><td>Medium reach</td><td>~50 cm</td><td>Chip to chip across a board or a mezzanine</td></tr>
+            <tr><td><strong>LR</strong></td><td>Long reach</td><td>~100 cm</td><td>Backplane — two connectors, and the worked example of this deck</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout">
+        <div class="callout-label">How the two fit together, and two more names</div>
+        <p>IEEE defines the network and its ports; OIF defines the electrical interfaces that
+        connect chips to one another and to optical modules. They are developed in step —
+        CEI-112G and IEEE 802.3ck arrived together and are aligned on rate and channel — so a
+        lane can legitimately be described either way, depending which layer you mean.</p>
+        <p style="margin-top:.6rem">Two others recur below. <strong>KP4 FEC</strong> is the
+        Reed–Solomon code RS(544,514), named after the 100GBASE-KP4 physical layer it was first
+        specified for and now used far beyond it. And PCI Express quotes rates in
+        <strong>GT/s</strong>, gigatransfers per second — the raw signalling rate <em>before</em>
+        coding overhead: PCIe 3.0 at 8 GT/s with 128b/130b delivers about 7.88 Gb/s of payload
+        per lane.</p>
     </div>
 </section>
 
