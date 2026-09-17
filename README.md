@@ -48,7 +48,23 @@ The same material as a written report:
 
 ## Companion decks
 
-- [Matrix Methods in Network Parameters](https://github.com/BrendanJamesLynskey/Matrix_Methods_Network_Parameters) — S, Z and Y, mixed-mode, passivity, the Smith chart
-- [Matrix Concepts in Digital Filter Design](https://github.com/BrendanJamesLynskey/Matrix_Concepts_Digital_Filters) — state-space stability, Wiener–Hopf, paraunitary banks
+The two this one is built on:
+
+- [Matrix Methods in Network Parameters](https://github.com/BrendanJamesLynskey/Matrix_Methods_Network_Parameters) — S, Z and Y, mixed-mode and skew-driven mode conversion, passivity, causality, the Smith chart. The channel description in §3 rests on it
+- [Matrix Concepts in Digital Filter Design](https://github.com/BrendanJamesLynskey/Matrix_Concepts_Digital_Filters) — state-space stability, Wiener–Hopf optimal taps, the eigenfilter, paraunitary banks. Every equaliser in §5 is an instance of its optimal-tap problem
+
+## Related material
+
+Indexed together under [Signal Integrity &amp; High-Speed Digital Design](https://github.com/BrendanJamesLynskey/Hardware#signal-integrity--high-speed-digital-design) in the Hardware repo.
+
+| Repo | How it relates |
+| --- | --- |
+| [Modern SoC Design](https://github.com/BrendanJamesLynskey/SoC) | Sixteen decks on SoC design. Deck 04 covers high-speed SerDes and I/O from the silicon side, deck 01 advanced packaging and chiplets (§11.2 here), deck 08 CXL in accelerator SoCs (§11.4), deck 09 power delivery and deck 13 clocks and resets |
+| [High-Speed Serial Links — interview prep](https://github.com/BrendanJamesLynskey/Interview_High_Speed_Serial_Links) | The closest neighbour: written notes and worked problems on link budgets, driver architectures, PLL jitter, CTLE / DFE / CDR, PCIe Gen5-6, UCIe, NVLink, eye analysis, crosstalk and PDN coupling |
+| [Kramers–Kronig Relations](https://github.com/BrendanJamesLynskey/Kramers_Kronig_Relations) | A full treatment of the causality constraint that §6 leans on when fitting measured S-parameters |
+| [LPDDRx Layout — interview prep](https://github.com/BrendanJamesLynskey/Interview_LPDDRx_Layout) | The parallel-bus side of §11.3 — memory interface layout, skew and termination |
+| [Arm AMBA](https://github.com/BrendanJamesLynskey/AMBA) | What the traffic becomes once it is on-chip: AXI, ACE and CHI, and CHI-C2C for chiplets |
+| [NVIDIA GPU — PCIe and GPUDirect](https://github.com/BrendanJamesLynskey/NVIDIA_GPU_14_PCIe_and_GPUDirect) · [NVLink and NVSwitch](https://github.com/BrendanJamesLynskey/NVIDIA_GPU_05_NVLink_NVSwitch) | The same links seen from the system side — PCIe topology, and the scale-up fabric that motivates §11 |
+| [Google TPU — ICI and OCS](https://github.com/BrendanJamesLynskey/Google_TPU_10_ICI_and_OCS) | A custom SerDes and an optical circuit switch in a production accelerator fabric |
 
 Single-page HTML, KaTeX-rendered maths, no build step. Open `index.html` directly.
