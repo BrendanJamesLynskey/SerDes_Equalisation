@@ -11,7 +11,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
     <style>
-        :root { --bg-primary:#0a0a0a; --bg-card:#0d1117; --bg-code:#161b22; --text-primary:#e6edf3; --text-secondary:#8b949e; --accent:#f59e0b; --accent-dim:#f59e0b44; --accent-glow:#f59e0b33; --accent-2:#f472b6; --accent-3:#fbbf24; --accent-4:#34d399; --border:#21262d; --font-display:'Space Grotesk',sans-serif; --font-mono:'JetBrains Mono','Fira Code',monospace; --font-body:'Inter',sans-serif; --max-width:900px; }
+        :root { --bg-primary:#121a1b; --bg-card:#172122; --bg-code:#1e292a; --text-primary:#ede5d9; --text-secondary:#8e9a96; --accent:#d88954; --accent-dim:#d8895444; --accent-glow:#d8895433; --accent-2:#d78da4; --accent-3:#eea465; --accent-4:#6fbba9; --border:#293636; --font-display:'Space Grotesk',sans-serif; --font-mono:'JetBrains Mono','Fira Code',monospace; --font-body:'Inter',sans-serif; --max-width:900px; }
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         html{scroll-behavior:smooth}
         body{background:var(--bg-primary);color:var(--text-primary);font-family:var(--font-body);font-size:17px;line-height:1.7;overflow-x:hidden}
@@ -61,7 +61,7 @@
         .control-row input[type="range"]{flex:1;min-width:150px;accent-color:var(--accent)}
         .control-row .val{font-family:var(--font-mono);font-size:.85rem;color:var(--accent);min-width:80px;text-align:right}
         .btn{font-family:var(--font-mono);font-size:.8rem;padding:.4rem .9rem;background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent);border-radius:4px;cursor:pointer}
-        .btn:hover{background:rgba(245,158,11,.25)}
+        .btn:hover{background:rgba(216,137,84,.25)}
         .btn.secondary{background:var(--bg-code);color:var(--text-secondary);border-color:var(--border)}
         .metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.5rem;margin-top:.75rem}
         .metric{background:var(--bg-code);border:1px solid var(--border);border-radius:6px;padding:.6rem .8rem;text-align:center}
@@ -81,7 +81,7 @@
         th{background:var(--bg-code);color:var(--accent);font-weight:600;text-align:left;padding:.6rem .85rem;border-bottom:1px solid var(--border);font-family:var(--font-display)}
         td{padding:.5rem .85rem;border-bottom:1px solid var(--border);color:var(--text-secondary);vertical-align:top}
         tr:last-child td{border-bottom:none}
-        tr:nth-child(even) td{background:rgba(13,17,23,.5)}
+        tr:nth-child(even) td{background:rgba(23,33,34,.5)}
         @media (max-width:640px){.slide{padding:3rem 1rem;min-height:auto}.slide-number{font-size:3rem;top:1.5rem;right:1rem}.slide h2{font-size:1.5rem}.diagram-grid.cols-2,.diagram-grid.cols-3{grid-template-columns:1fr}.hero h1{font-size:1.8rem}}
 
         .plane-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
@@ -89,8 +89,8 @@
         .legend{display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;margin-top:.6rem;font-family:var(--font-mono);font-size:.72rem;color:var(--text-secondary)}
         .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:.35rem;vertical-align:middle}
         .verdict{font-family:var(--font-mono);font-size:.8rem;padding:.35rem .7rem;border-radius:4px;display:inline-block;margin-top:.5rem}
-        .verdict.ok{color:var(--accent-4);border:1px solid var(--accent-4);background:rgba(52,211,153,.12)}
-        .verdict.bad{color:var(--accent-2);border:1px solid var(--accent-2);background:rgba(244,114,182,.12)}
+        .verdict.ok{color:var(--accent-4);border:1px solid var(--accent-4);background:rgba(111,187,169,.12)}
+        .verdict.bad{color:var(--accent-2);border:1px solid var(--accent-2);background:rgba(215,141,164,.12)}
         .canvas-wrap canvas{image-rendering:auto}
         .metric-label .katex,.callout-label .katex,.series-label .katex,
         .metric-label .katex *,.callout-label .katex *{text-transform:none}
@@ -739,8 +739,8 @@
     <div class="canvas-wrap">
         <canvas id="vs-plot" width="780" height="290"></canvas>
         <div class="legend">
-            <span><i style="background:#f472b6"></i>excess loss from the stub</span>
-            <span><i style="background:#fbbf24"></i>Nyquist, 14 GHz</span>
+            <span><i style="background:#d78da4"></i>excess loss from the stub</span>
+            <span><i style="background:#eea465"></i>Nyquist, 14 GHz</span>
         </div>
     </div>
 
@@ -893,9 +893,9 @@
             <canvas id="eq-budget" width="380" height="300"></canvas>
         </div>
         <div class="legend">
-            <span><i style="background:#34d399"></i>cursor</span>
-            <span><i style="background:#f472b6"></i>ISI the equalisers left</span>
-            <span><i style="background:#22d3ee"></i>cancelled by the DFE</span>
+            <span><i style="background:#6fbba9"></i>cursor</span>
+            <span><i style="background:#d78da4"></i>ISI the equalisers left</span>
+            <span><i style="background:#95c7db"></i>cancelled by the DFE</span>
         </div>
     </div>
 
@@ -951,9 +951,9 @@
     <div class="canvas-wrap">
         <canvas id="st-plot" width="780" height="300"></canvas>
         <div class="legend">
-            <span><i style="background:#f472b6"></i>signal to non-ISI noise — can only fall</span>
-            <span><i style="background:#34d399"></i>signal to residual ISI — what you buy</span>
-            <span><i style="background:#22d3ee"></i>the two combined, 20 log Q</span>
+            <span><i style="background:#d78da4"></i>signal to non-ISI noise — can only fall</span>
+            <span><i style="background:#6fbba9"></i>signal to residual ISI — what you buy</span>
+            <span><i style="background:#95c7db"></i>the two combined, 20 log Q</span>
         </div>
     </div>
 
@@ -1399,9 +1399,9 @@
 
 <script>
 /* ---------- shared canvas helpers -------------------------------------- */
-const C = { bg:'#0d1117', panel:'#161b22', grid:'#21262d', dim:'#8b949e',
-            accent:'#f59e0b', teal:'#34d399', cyan:'#22d3ee', pink:'#f472b6',
-            amber:'#fbbf24', text:'#e6edf3' };
+const C = { bg:'#172122', panel:'#1e292a', grid:'#293636', dim:'#8e9a96',
+            accent:'#d88954', teal:'#6fbba9', cyan:'#95c7db', pink:'#d78da4',
+            amber:'#eea465', text:'#ede5d9' };
 
 function hidpi(id) {
     const c = document.getElementById(id);
